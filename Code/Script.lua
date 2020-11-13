@@ -169,3 +169,30 @@ function SaveLayout()
 	print("Save Layout: " .. layoutSettings.name)
 	OpenExamine(layoutSettings)
 end
+
+-- get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
+-- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library  v8.7
+-- added 4th argument "class": only get objects inherited from class provided this argument
+function ReturnAllNearby(radius, sort, pt, class)
+	-- local is faster then global
+	local table_sort = table.sort
+	radius = radius or 5000
+	pt = pt or GetTerrainCursor()
+
+	-- get all objects within radius
+	local list = MapGet(pt, radius, class)
+
+	-- sort list custom
+	if sort then
+		table_sort(list, function(a, b)
+			return a[sort] < b[sort]
+		end)
+	else
+		-- sort nearest
+		table_sort(list, function(a, b)
+			return a:GetVisualDist(pt) < b:GetVisualDist(pt)
+		end)
+	end
+
+	return list
+end
