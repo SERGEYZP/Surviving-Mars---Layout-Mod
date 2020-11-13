@@ -3,23 +3,23 @@ function OnMsg.ClassesPostprocess()
 		return
 	end
 
+	-- Common id string, for simplicity and correct logic used in several places below
+	local commonId = "Service_Slice_Simple"
+	-- Common id string, to identify menu, in which layout object will be placed
+	local buildCategory = "Layout Infrastructure"
+	
 	-- Info from ChoGGi's Layout Example
 	PlaceObj("BuildingTemplate", {
-		-- "Id, LayoutList, Group" must begin with capital letter!!!
+		-- "Id", "LayoutList", "Group" must begin with capital letter!!! All is case sensitive
 		-- keep it unique folks 
-		"Id", "Service_Slice_Simple",
-		-- LayoutList id corresponds to the LayoutConstruction below
-		"LayoutList", "Service_Slice_Simple",
+		"Id", commonId,
+		-- "LayoutList" id corresponds to the "LayoutConstruction" below
+		"LayoutList", commonId,
 		-- what group to add it to
-		-- "Group", "Dome Services",
-		-- "build_category", "Dome Services",
-		-- "Group", "LayoutStorages",
-		-- "build_category", "LayoutStorages",
-		"Group", "Layout Infrastructure",
-		"build_category", "Layout Infrastructure",
+		"Group", buildCategory,
+		"build_category", buildCategory,
 		-- pos in build menu
 		"build_pos", 0,
-		-- don't look at me (0 means no id, use in-game mod editor to generate ids)
 		"display_name", "Service Slice Simple",
 		"display_name_pl", "Service Slice Simple",
 		"description", "Diner + Infirmary + Grocery + Statue",
@@ -29,24 +29,11 @@ function OnMsg.ClassesPostprocess()
 		"entity", "InvisibleObject",
 		"construction_mode", "layout",
 	})
-	
-	-- PlaceObj('BuildMenuSubcategory', {
-		-- "id", "Fixer.Menu",
-		-- "display_name", "Fixer Menu",
-		-- "icon", "UI/Icons/Buildings/dinner.tga",
-		-- "description", "Description Fixer Menu",
-		-- "build_pos", 0,
-		-- "category", "Storages",
-		-- "allow_template_variants", true,
-		-- "close_parent", true,
-		-- action = function(self, context, button)
-				-- print("Selected Subcategory")
-			-- end
-	-- })
 
 	PlaceObj("LayoutConstruction", {
+		-- Don't write here like this: "group" = "Default" ... this cause error
 		group = "Default",
-		id = "Service_Slice_Simple",
+		id = commonId,
 
 		-- "template" -> String -> Class Template.
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Tools" -> "Ged Editor".
@@ -100,5 +87,4 @@ function OnMsg.ClassesPostprocess()
 			"entity", "GardenStatue_01",
 		}),	
 	})
-
 end
