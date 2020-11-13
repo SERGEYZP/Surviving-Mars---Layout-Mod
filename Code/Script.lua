@@ -114,7 +114,7 @@ function TableToString(tbl)
 	return str
 end
 
-local GUIDE = "\n" .. [[
+local GUIDE = '\n' .. [[
 [Optional] "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
 [Optional] Enable ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
@@ -122,26 +122,27 @@ BUILD:
 	Press [Alt+B] to instant building.
 CAPTURE LAYOUT:
 	Place your mouse cursor in the center of building's layout.
-	Press []] .. ShortcutCapture .. "]\n" .. [[
-	Set all parameters. "id" must be unique, "build_category" - allowed number from 1 to 15, "build_pos" - number, others - as you like.
-	[Info] "id" parameter additionally will be used as part of file name of layout's lua script, as file name for layout's icon.
+	Press []] .. ShortcutCapture .. ']\n' .. [[
+	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
+	Set all parameters in "Edit Object" window:
+		"id" (must be unique) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
+		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
+		"build_pos" (number from 1 to ?) position in build menu.
+		[others] - as you like.
+	
 SAVE:
-	Press []] .. ShortcutSave .. "]\n" .. [[
+	Press []] .. ShortcutSave .. ']\n' .. [[
 APPLY:
 	To take changes in effect restart game.
 	Press [Ctrl-Alt-R] then [Enter].
 WHAT TO DO:
-	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. [[UI/%id%.png"
-]]
-
-GUIDE = GUIDE .. '\n"build_category" (allowed value is number from 1 to 15)  :\n' .. TableToString(origMenuId)
-
+	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
+"build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId) .. '\n\n'
 
 local layoutSettings = {
-	_GUIDE_ = GUIDE,
 	id = "SetIdForLayoutFile",
 	display_name = "Display Name",
-	description = "Describe layout",
+	description = "Layout Desctiption",
 	build_category = 15,
 	build_pos = 0,
 }
@@ -179,8 +180,8 @@ end
 function CaptureLayout()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	print("Layout Captured")
-	OpenExamine(layoutSettings)
 	OpenInObjectEditorDlg(layoutSettings)
+	OpenExamine(GUIDE)
 end
 
 function SaveLayout()
