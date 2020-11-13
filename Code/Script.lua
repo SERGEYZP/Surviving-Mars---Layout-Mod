@@ -107,9 +107,9 @@ function TableToString(tbl)
 	for i, v in ipairs(tbl) do
 		if (i < 10) then
 			-- Shift line with one digit [1-9] to right
-			str = str .. " "
+			str = str .. "   "
 		end
-		str = str .. i .. " == " .. v .. "\n"
+		str = str .. i .. "\t== " .. v .. "\n"
 	end
 	return str
 end
@@ -129,7 +129,7 @@ CAPTURE LAYOUT:
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to ?) position in build menu.
 		[others] - as you like.
-	
+	Close all windows.
 SAVE:
 	Press []] .. ShortcutSave .. ']\n' .. [[
 APPLY:
@@ -137,7 +137,7 @@ APPLY:
 	Press [Ctrl-Alt-R] then [Enter].
 WHAT TO DO:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
-"build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId) .. '\n\n'
+"build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId)
 
 local layoutSettings = {
 	id = "SetIdForLayoutFile",
