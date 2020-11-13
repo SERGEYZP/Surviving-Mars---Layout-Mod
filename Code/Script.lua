@@ -11,6 +11,11 @@
 -- GlobalVar("tmp", {"param1","param2",}) <- this line will not create object, but boolean == false :(
 -- GlobalVar("tmp", {}) tmp = {[1] = "param1", [2] = "param2",} <- create empty object, add params
 
+-- pairs() returns key-value pairs and is mostly used for associative tables. key order is unspecified.
+-- ipairs() returns index-value pairs and is mostly used for numeric tables. Non numeric keys in an array are ignored, while the index order is deterministic (in numeric order).
+
+-- Order of function definition is essential. Must define before first useage.
+
 -- Path to menu icon
 local menuIcon = "UI/MenuIcon.png"
 -- Disaplay name of each menu
@@ -93,81 +98,88 @@ end
 
 
 -- Main Code --
-local GUIDE = [[
 
-Capture
-Save
-Bla bla bla
+local ShortcutCapture = "Ctrl-Insert"
+local ShortcutSave = "Shift-Insert"
+
+function TableToString(tbl)
+	local str = ""
+	for i, v in ipairs(tbl) do
+		if (i < 10) then
+			-- Shift line with one digit [1-9] to right
+			str = str .. " "
+		end
+		str = str .. i .. " == " .. v .. "\n"
+	end
+	return str
+end
+
+local GUIDE = "\n" .. [[
+[Optional] "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
+[Optional] Enable ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
+BUILD:
+	Place your buildings.
+	Press [Alt+B] to instant building.
+CAPTURE LAYOUT:
+	Place your mouse cursor in the center of building's layout.
+	Press []] .. ShortcutCapture .. "]\n" .. [[
+SAVE:
+	Press []] .. ShortcutSave .. "]\n" .. [[
+APPLY:
+	To take changes in effect restart game.
+	Press [Ctrl-Alt-R] then [Enter].
 ]]
-local extension = ".lua"
+
+GUIDE = GUIDE .. '\nPossible values of "build_category":\n' .. TableToString(origMenuId)
+
+
 local layoutSettings = {
 	_GUIDE_ = GUIDE,
-	name = "SetNameForLayoutFile",
-	description = "Describe layout",
+	id = "SetIdForLayoutFile",
 	display_name = "Display Name",
-	build_category = "",
+	description = "Describe layout",
+	build_category = 0,
 	build_pos = 0,
 }
 
 -- function OnMsg.ClassesPostprocess()
 -- end
 
--- After this message ChoGGi's object is ready to use (if you don't use dependencies)
+-- Create Shortcuts
+-- After this message ChoGGi's object is ready to use
 function OnMsg.ModsReloaded()
 	local Actions = ChoGGi.Temp.Actions
 	
 	Actions[#Actions + 1] = {ActionName = "Layout Capture",
 		ActionId = "Layout.Capture",
 		OnAction = CaptureLayout,
-		ActionShortcut = "Insert",
+		ActionShortcut = ShortcutCapture,
 		ActionBindable = true,
 	}
 	
 	Actions[#Actions + 1] = {ActionName = "Layout Save",
 		ActionId = "Layout.Save",
 		OnAction = SaveLayout,
-		ActionShortcut = "Shift-Insert",
+		ActionShortcut = ShortcutSave,
 		ActionBindable = true,
 	}
 	
 	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
 		ActionId = "Layout.Clear.Log",
 		OnAction = cls,
-		ActionShortcut = "Ctrl-Insert",
+		ActionShortcut = "Insert",
 		ActionBindable = true,
 	}
 end
 
--- DefineClass.LayoutSettings = {
-	-- _GUIDE_ = GUIDE,
-	-- name = "SetNameForLayoutFile",
-	-- description = "Describe layout",
-	-- display_name = "Name above/under icon",
-	-- build_category = "",
-	-- build_pos = 0,
--- }
-
--- function LayoutSettings:Init()
-	-- print("layoutSettings created.")
--- end
-
--- function LayoutSettings:GameInit()
-	-- print("layoutSettings Game Initialized.")
--- end
-
--- function LayoutSettings:Done()
-	-- print("layoutSettings deleted.")
-	-- self.delete()
--- end
-
 function CaptureLayout()
-	print("Capture Layout")
+	print("Layout Captured")
 	OpenExamine(layoutSettings)
 end
 
 function SaveLayout()
-	print("Save Layout: " .. layoutSettings.name)
-	OpenExamine(layoutSettings)
+	print("Layout Saved: " .. CurrentModPath .. "Layout\\".. layoutSettings.id .. ".lua")
+	-- OpenExamine(layoutSettings)
 end
 
 -- get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
@@ -196,3 +208,5 @@ function ReturnAllNearby(radius, sort, pt, class)
 
 	return list
 end
+
+
