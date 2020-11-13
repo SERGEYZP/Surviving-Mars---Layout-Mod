@@ -123,14 +123,18 @@ BUILD:
 CAPTURE LAYOUT:
 	Place your mouse cursor in the center of building's layout.
 	Press []] .. ShortcutCapture .. "]\n" .. [[
+	Set all parameters. "id" must be unique, "build_category" - allowed number from 1 to 15, "build_pos" - number, others - as you like.
+	[Info] "id" parameter additionally will be used as part of file name of layout's lua script, as file name for layout's icon.
 SAVE:
 	Press []] .. ShortcutSave .. "]\n" .. [[
 APPLY:
 	To take changes in effect restart game.
 	Press [Ctrl-Alt-R] then [Enter].
+WHAT TO DO:
+	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. [[UI/%id%.png"
 ]]
 
-GUIDE = GUIDE .. '\nPossible values of "build_category":\n' .. TableToString(origMenuId)
+GUIDE = GUIDE .. '\n"build_category" (allowed value is number from 1 to 15)  :\n' .. TableToString(origMenuId)
 
 
 local layoutSettings = {
@@ -138,7 +142,7 @@ local layoutSettings = {
 	id = "SetIdForLayoutFile",
 	display_name = "Display Name",
 	description = "Describe layout",
-	build_category = 0,
+	build_category = 15,
 	build_pos = 0,
 }
 
@@ -173,8 +177,10 @@ function OnMsg.ModsReloaded()
 end
 
 function CaptureLayout()
+	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	print("Layout Captured")
 	OpenExamine(layoutSettings)
+	OpenInObjectEditorDlg(layoutSettings)
 end
 
 function SaveLayout()
