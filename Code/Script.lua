@@ -102,9 +102,9 @@ end
 local ShortcutCapture = "Ctrl-Insert"
 local ShortcutSave = "Shift-Insert"
 
-function TableToString(tbl)
+function TableToString(inputTable)
 	local str = ""
-	for i, v in ipairs(tbl) do
+	for i, v in ipairs(inputTable) do
 		if (i < 10) then
 			-- Shift line with one digit [1-9] to right
 			str = str .. "   "
@@ -119,15 +119,17 @@ local GUIDE = '\n' .. [[
 [Optional] Enable ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
 	Place your buildings.
-	Press [Alt+B] to instant building.
+	Press [Alt-B] to instant building.
 CAPTURE LAYOUT:
 	Place your mouse cursor in the center of building's layout.
+	Press [Ctrl-M] and measure radius of building's layout.
 	Press []] .. ShortcutCapture .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
-	Set all parameters in "Edit Object" window:
+	Set parameters in "Edit Object" window:
 		"id" (must be unique) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to ?) position in build menu.
+		"radius" (nil or positive number) capture radius, multiply measured value in meters by 100.
 		[others] - as you like.
 	Close all windows.
 SAVE:
@@ -145,6 +147,7 @@ local layoutSettings = {
 	description = "Layout Desctiption",
 	build_category = 15,
 	build_pos = 0,
+	radius = nil,
 }
 
 -- function OnMsg.ClassesPostprocess()
@@ -177,11 +180,36 @@ function OnMsg.ModsReloaded()
 	}
 end
 
+-- Return table with objects, that match "entity" parameter
+function GetObjsByEntity(inputTable, entity)
+	local string_find = string.find
+	local table_insert = table.insert
+	local resultTable = {}
+	for i, v in ipairs(inputTable) do
+		if (string_find(inputTable[i]:GetEntity(), entity)) then
+			table_insert(resultTable, inputTable[i])
+		end
+	end
+	return resultTable
+end
+
+local buildings = {}
+local cables = {}
+local pipes = {}
+
 function CaptureLayout()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
+	buildings    = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
+	local supply = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
+	cables = GetObjsByEntity(supply, "Cable")
+	pipes  = GetObjsByEntity(supply, "Tube")
+	ex(buildings)
+	ex(supply)
+	ex(cables)
+	ex(pipes)
 	print("Layout Captured")
-	OpenInObjectEditorDlg(layoutSettings)
-	OpenExamine(GUIDE)
+	-- OpenInObjectEditorDlg(layoutSettings)
+	-- OpenExamine(GUIDE)
 end
 
 function SaveLayout()
@@ -190,7 +218,7 @@ function SaveLayout()
 end
 
 -- get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
--- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library  v8.7
+-- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
 -- added 4th argument "class": only get objects inherited from class provided this argument
 function ReturnAllNearby(radius, sort, pt, class)
 	-- local is faster then global
@@ -215,5 +243,3 @@ function ReturnAllNearby(radius, sort, pt, class)
 
 	return list
 end
-
-
