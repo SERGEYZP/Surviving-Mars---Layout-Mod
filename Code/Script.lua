@@ -254,36 +254,44 @@ function LayoutCapture()
 		return
 	end
 	
-	-- File prepare
+	-- Files prepare
+	local itemsFileName = CurrentModPath .. "items.lua"
+	local metadataFileName = CurrentModPath .. "metadata.lua"
 	if (build_pos < 10) then
 		build_pos = "0" .. build_pos
 	end
 	-- Concatenate path and name
-	local fileName = "" ..
+	local layoutFileName = "" ..
 		-- Path to file
 		CurrentModPath .. "Layout/" ..
 		-- File name without path
 		origMenuId[build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
-	local fileExist = FileExist(fileName)
+	local fileExist = FileExist(layoutFileName)
 	local fileOverwrite = false
 	
 	-- DEBUG
+	-- Open in Notepad++, select two strings and hit [Ctrl-Q] to toggle comment
+	-- local DEBUG = false
 	local DEBUG = true
+	
 	if (DEBUG) then
-		fileName = fileName .. ".txt"
+		local dbgExt = ".txt"
+		itemsFileName = itemsFileName .. dbgExt
+		layoutFileName = layoutFileName .. dbgExt
+		metadataFileName = metadataFileName .. dbgExt
 	end
-	print("FileName: " .. fileName)
+	print("FileName: " .. layoutFileName)
 	-- Can't cocatenate boolean variable
 	print("FileExist: " .. tostring(fileExist))
 	
 	-- string err AsyncStringToFile(...) - by default overwrites file
-	print(AsyncStringToFile(fileName, BuildMetadataLua()))
+	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
 	return
 	
 	-- if (fileExist) then
 		-- -- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
 		-- ChoGGi.ComFuncs.QuestionBox(
-			-- "Layout file with name already exist: " .. fileName,
+			-- "Layout file with name already exist: " .. layoutFileName,
 			-- function(answer)
 				-- if answer then
 					-- fileOverwrite = true
@@ -339,7 +347,7 @@ BuildMetadataLua = function()
 	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*", "sorted")
 	local strLayoutFiles = ""
 	for i, strFile in ipairs(layoutFiles) do
-		strLayoutFiles = strLayoutFiles .. "Layout/" .. strFile .. "\n"
+		strLayoutFiles = "\t\t" .. strLayoutFiles .. "Layout/" .. strFile .. "\n"
 	end
 	local str = [[
 return PlaceObj('ModDef', {
