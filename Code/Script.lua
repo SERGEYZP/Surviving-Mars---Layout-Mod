@@ -240,8 +240,8 @@ end
 
 function LayoutCapture()
 	-- Capture objects
-	local buildings = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
-	local supply    = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
+	local buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
+	local supply    = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
 	local cables = GetObjsByEntity(supply, "Cable")
 	local pipes  = GetObjsByEntity(supply, "Tube")
 
@@ -319,7 +319,6 @@ function LayoutCapture()
 	-- print(AsyncStringToFile(itemsFileName, BuildItemsLua()))
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
 	print(AsyncStringToFile(layoutFileName, BuildLayoutLua(buildings, cables, pipes)))
-	return
 	
 	-- if (fileExist) then
 		-- -- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
