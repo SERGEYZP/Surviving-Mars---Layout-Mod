@@ -105,6 +105,8 @@ end
 
 local ShortcutCapture   = "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
+-- Function forward declaration
+local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutTailLua, BuildLayoutLua
 
 function TableToString(inputTable)
 	local str = ""
@@ -133,7 +135,7 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
 	Set parameters in "Edit Object" window:
-		"id" (must be unique) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
 		"radius" (nil or positive number) capture radius, multiply measured value in meters by 100.
@@ -221,8 +223,13 @@ function FileExist(fileName)
 	end
 end
 
--- Function forward declaration
-local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutTailLua, BuildLayoutLua
+-- Trim space http://lua-users.org/wiki/StringTrim
+function TrimSpace(str)
+	-- "%s" - space
+	-- "."  - 'greedy' any character
+	-- ".-" - 'lazy' any character
+	return (str:gsub("^%s*(.-)%s*$", "%1"))
+end
 
 function LayoutCapture()
 	-- Capture objects
@@ -230,13 +237,14 @@ function LayoutCapture()
 	local supply    = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
 	local cables = GetObjsByEntity(supply, "Cable")
 	local pipes  = GetObjsByEntity(supply, "Tube")
-	ex(buildings)
+	-- ex(buildings)
 	-- ex(supply)
 	-- ex(cables)
 	-- ex(pipes)
 	
 	-- Check params
 	local build_category = tonumber(layoutSettings.build_category)
+	layoutSettings.build_category = build_category
 	if (build_category < 1 or build_category > #origMenuId) then
 		CancelDialogBox(
 			'"build_category" - enter number from 1 to 15',
@@ -246,10 +254,21 @@ function LayoutCapture()
 	end
 	
 	local build_pos = tonumber(layoutSettings.build_pos)
+	layoutSettings.build_pos = build_pos
 	if (build_pos < 0 or build_pos > 99) then
 		CancelDialogBox(
 			'"build_pos" - enter number from 1 to 99',
 			'"build_pos" - not allowed value: ' .. build_pos
+		)
+		return
+	end
+	
+	local id = TrimSpace(tostring(layoutSettings.id))
+	layoutSettings.id = id
+	if (string.find(id, " ") or string.find(id, "\t")) then
+		CancelDialogBox(
+			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
+			'"id" - not allowed value: ' .. id
 		)
 		return
 	end
@@ -265,7 +284,7 @@ function LayoutCapture()
 		-- Path to file
 		CurrentModPath .. "Layout/" ..
 		-- File name without path
-		origMenuId[build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
+		origMenuId[build_category] .. " - " .. build_pos .. " - " .. id .. ".lua"
 	local fileExist = FileExist(layoutFileName)
 	local fileOverwrite = false
 	
@@ -285,7 +304,9 @@ function LayoutCapture()
 	print("FileExist: " .. tostring(fileExist))
 	
 	-- string err AsyncStringToFile(...) - by default overwrites file
+	-- print(AsyncStringToFile(itemsFileName, BuildItemsLua()))
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
+	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
 	return
 	
 	-- if (fileExist) then
@@ -394,13 +415,47 @@ return PlaceObj('ModDef', {
 end
 
 BuildLayoutHeadLua = function()
+	local str = [[
+function OnMsg.ClassesPostprocess()
+	if BuildingTemplates.]] .. layoutSettings.id .. [[then
+		return
+	end
 
+	local commonId = "]] .. layoutSettings.id .. [["
+	local buildCategory = "]] .. menuId[layoutSettings.build_category] .. [["
+
+	PlaceObj("BuildingTemplate", {
+		"Id", commonId,
+		"LayoutList", commonId,
+		"Group", buildCategory,
+		"build_category", buildCategory,
+		"build_pos", ]] .. layoutSettings.build_pos .. [[,
+		"display_name", "]] .. layoutSettings.display_name .. [[",
+		"display_name_pl", "]] .. layoutSettings.display_name .. [[",
+		"description", "]] .. layoutSettings.description .. [[",
+		"display_icon", "]] .. "UI/" .. layoutSettings.id .. ".png" .. [[",
+		"template_class", "LayoutConstructionBuilding",
+		"entity", "InvisibleObject",
+		"construction_mode", "layout",
+	})
+
+	PlaceObj("LayoutConstruction", {
+		group = "Default",
+		id = commonId,
+
+]]
+
+	return str
 end
 
 BuildLayoutTailLua = function()
-
+	local str = [[
+	})
+end
+]]
+	return str
 end
 
 BuildLayoutLua = function()
-
+	return BuildLayoutHeadLua() .. BuildLayoutTailLua()
 end

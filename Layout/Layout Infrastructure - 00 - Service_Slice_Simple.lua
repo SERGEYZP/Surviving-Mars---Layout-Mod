@@ -10,7 +10,7 @@ function OnMsg.ClassesPostprocess()
 	local commonId = "Service_Slice_Simple"
 	-- Common id string, to identify menu, in which layout object will be placed
 	local buildCategory = "Layout Infrastructure"
-	
+
 	-- Info from ChoGGi's Layout Example
 	PlaceObj("BuildingTemplate", {
 		-- "Id", "LayoutList", "Group" must begin with capital letter!!! All is case sensitive
