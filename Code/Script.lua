@@ -1,4 +1,5 @@
 -- TODO -- Ask ChoGGi to add hotkey to "Close dialogs"
+-- TODO -- ReloadLua() cmd, but it messes up ECM (and it's in the func blacklist)
 
 ---- LUA STUFF ----
 
