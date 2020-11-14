@@ -1,3 +1,6 @@
+-- File name explanation: "%build_category% - %build_pos% - %Id%.lua"
+-- %build_pos% - two digit format only for file name, for natural sort in file manager
+
 function OnMsg.ClassesPostprocess()
 	if BuildingTemplates.Service_Slice_Simple then
 		return

@@ -1,4 +1,6 @@
--- Build Menus --
+-- TODO -- Ask ChoGGi to add hotkey to "Close dialogs"
+
+---- BUILD MENUS ----
 
 -- Ingame table with root menus, which appears on hotkey [B]:
 -- Enhanced Cheat Menu -> Console -> ~BuildCategories
@@ -97,10 +99,10 @@ end
 
 
 
--- Main Code --
+---- MAIN CODE ----
 
-local ShortcutCapture = "Ctrl-Insert"
-local ShortcutSave = "Shift-Insert"
+local ShortcutCapture   = "Ctrl-Insert"
+local ShortcutSetParams = "Shift-Insert"
 
 function TableToString(inputTable)
 	local str = ""
@@ -115,25 +117,28 @@ function TableToString(inputTable)
 end
 
 local GUIDE = '\n' .. [[
-[Optional] "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
-[Optional] Enable ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
+ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
+[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need acces to AsyncIO functions to create lua files).
+	Install required mod, then copy "BinAssets" from Layout's mod folder to "%AppData%\Surviving Mars".
+[Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
+[Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
 	Place your buildings.
 	Press [Alt-B] to instant building.
-CAPTURE LAYOUT:
+SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
 	Press [Ctrl-M] and measure radius of building's layout.
-	Press []] .. ShortcutCapture .. ']\n' .. [[
+	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
 	Set parameters in "Edit Object" window:
 		"id" (must be unique) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
-		"build_pos" (number from 1 to ?) position in build menu.
+		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
 		"radius" (nil or positive number) capture radius, multiply measured value in meters by 100.
 		[others] - as you like.
 	Close all windows.
-SAVE:
-	Press []] .. ShortcutSave .. ']\n' .. [[
+CAPTURE:
+	Press []] .. ShortcutCapture .. ']\n' .. [[
 APPLY:
 	To take changes in effect restart game.
 	Press [Ctrl-Alt-R] then [Enter].
@@ -160,22 +165,22 @@ function OnMsg.ModsReloaded()
 	
 	Actions[#Actions + 1] = {ActionName = "Layout Capture",
 		ActionId = "Layout.Capture",
-		OnAction = CaptureLayout,
+		OnAction = LayoutCapture,
 		ActionShortcut = ShortcutCapture,
 		ActionBindable = true,
 	}
 	
-	Actions[#Actions + 1] = {ActionName = "Layout Save",
-		ActionId = "Layout.Save",
-		OnAction = SaveLayout,
-		ActionShortcut = ShortcutSave,
+	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
+		ActionId = "Layout.Set.Params",
+		OnAction = LayoutSetParams,
+		ActionShortcut = ShortcutSetParams,
 		ActionBindable = true,
 	}
 	
 	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
 		ActionId = "Layout.Clear.Log",
 		OnAction = cls,
-		ActionShortcut = "Insert",
+		ActionShortcut = "Alt-Insert",
 		ActionBindable = true,
 	}
 end
@@ -193,28 +198,91 @@ function GetObjsByEntity(inputTable, entity)
 	return resultTable
 end
 
-local buildings = {}
-local cables = {}
-local pipes = {}
-
-function CaptureLayout()
-	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
-	buildings    = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
-	local supply = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
-	cables = GetObjsByEntity(supply, "Cable")
-	pipes  = GetObjsByEntity(supply, "Tube")
-	ex(buildings)
-	ex(supply)
-	ex(cables)
-	ex(pipes)
-	print("Layout Captured")
-	-- OpenInObjectEditorDlg(layoutSettings)
-	-- OpenExamine(GUIDE)
+function LayoutCapture()
+	-- Capture objects
+	local buildings = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
+	local supply    = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
+	local cables = GetObjsByEntity(supply, "Cable")
+	local pipes  = GetObjsByEntity(supply, "Tube")
+	-- ex(buildings)
+	-- ex(supply)
+	-- ex(cables)
+	-- ex(pipes)
+	
+	-- Custom dialog window, show only text, no action
+	-- TODO ChoGGi cant use simpler DialogBox
+	function CancelDialogBox(text, title)
+		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
+		ChoGGi.ComFuncs.QuestionBox(
+			text,
+			nil,
+			title,
+			"Cancel Layout Capture",
+			"Cancel Layout Capture"
+		)
+	end
+	
+	-- Check params
+	local build_category = tonumber(layoutSettings.build_category)
+	if (build_category < 1 or build_category > #origMenuId) then
+		CancelDialogBox(
+			'"build_category" - enter number from 1 to 15',
+			'"build_category" - not allowed value'
+		)
+		return
+	end
+	
+	local build_pos = tonumber(layoutSettings.build_pos)
+	if (build_pos < 0 or build_pos > 99) then
+		CancelDialogBox(
+			'"build_pos" - enter number from 1 to 99',
+			'"build_pos" - not allowed value'
+		)
+		return
+	end
+	
+	-- File prepare
+	function FileExist(fileName)
+		-- Official documentation LuaFunctionDoc_AsyncIO.md.html
+		if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
+			return false
+		else
+			return true
+		end
+	end
+	print(fileName)
+	print(FileExist(fileName))
+	return
+	
+	-- if (build_pos < 10) then
+		-- build_pos = "0" .. build_pos
+	-- end
+	-- local fileName = origMenuId[build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
+	-- local fileExist = FileExist(fileName)
+	-- local fileOverwrite = false
+	
+	-- if (fileExist) then
+		-- -- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
+		-- ChoGGi.ComFuncs.QuestionBox(
+			-- "Layout file with name already exist: " .. fileName,
+			-- function(answer)
+				-- if answer then
+					-- fileOverwrite = true
+				-- end
+			-- end,
+			-- "Overwrite file?",
+			-- "Yes",
+			-- "Cancel Layout Capture"
+		-- )
+	-- end
+	-- -- TODO 
+	-- print("Layout Saved: " .. CurrentModPath .. "Layout\\".. layoutSettings.id .. ".lua")
 end
 
-function SaveLayout()
-	print("Layout Saved: " .. CurrentModPath .. "Layout\\".. layoutSettings.id .. ".lua")
-	-- OpenExamine(layoutSettings)
+function LayoutSetParams()
+	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
+	OpenInObjectEditorDlg(layoutSettings)
+	OpenExamine(GUIDE)
 end
 
 -- get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
