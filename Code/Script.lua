@@ -158,33 +158,6 @@ local layoutSettings = {
 -- function OnMsg.ClassesPostprocess()
 -- end
 
--- Create Shortcuts
--- After this message ChoGGi's object is ready to use
-function OnMsg.ModsReloaded()
-	local Actions = ChoGGi.Temp.Actions
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Capture",
-		ActionId = "Layout.Capture",
-		OnAction = LayoutCapture,
-		ActionShortcut = ShortcutCapture,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
-		ActionId = "Layout.Set.Params",
-		OnAction = LayoutSetParams,
-		ActionShortcut = ShortcutSetParams,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
-		ActionId = "Layout.Clear.Log",
-		OnAction = cls,
-		ActionShortcut = "Alt-Insert",
-		ActionBindable = true,
-	}
-end
-
 -- Return table with objects, that match "entity" parameter
 function GetObjsByEntity(inputTable, entity)
 	local string_find = string.find
@@ -198,6 +171,28 @@ function GetObjsByEntity(inputTable, entity)
 	return resultTable
 end
 
+-- Custom dialog window, show only text, no action
+-- TODO ChoGGi can we use simpler DialogBox?
+function CancelDialogBox(text, title)
+	-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
+	ChoGGi.ComFuncs.QuestionBox(
+		text,
+		nil,
+		title,
+		"Cancel Layout Capture",
+		"Cancel Layout Capture"
+	)
+end
+
+function FileExist(fileName)
+	-- Official documentation LuaFunctionDoc_AsyncIO.md.html
+	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
+		return false
+	else
+		return true
+	end
+end
+
 function LayoutCapture()
 	-- Capture objects
 	local buildings = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
@@ -209,25 +204,12 @@ function LayoutCapture()
 	-- ex(cables)
 	-- ex(pipes)
 	
-	-- Custom dialog window, show only text, no action
-	-- TODO ChoGGi cant use simpler DialogBox
-	function CancelDialogBox(text, title)
-		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
-		ChoGGi.ComFuncs.QuestionBox(
-			text,
-			nil,
-			title,
-			"Cancel Layout Capture",
-			"Cancel Layout Capture"
-		)
-	end
-	
 	-- Check params
 	local build_category = tonumber(layoutSettings.build_category)
 	if (build_category < 1 or build_category > #origMenuId) then
 		CancelDialogBox(
 			'"build_category" - enter number from 1 to 15',
-			'"build_category" - not allowed value'
+			'"build_category" - not allowed value: ' .. build_category
 		)
 		return
 	end
@@ -236,30 +218,29 @@ function LayoutCapture()
 	if (build_pos < 0 or build_pos > 99) then
 		CancelDialogBox(
 			'"build_pos" - enter number from 1 to 99',
-			'"build_pos" - not allowed value'
+			'"build_pos" - not allowed value: ' .. build_pos
 		)
 		return
 	end
 	
 	-- File prepare
-	function FileExist(fileName)
-		-- Official documentation LuaFunctionDoc_AsyncIO.md.html
-		if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
-			return false
-		else
-			return true
-		end
+	if (build_pos < 10) then
+		build_pos = "0" .. build_pos
 	end
-	print(fileName)
-	print(FileExist(fileName))
-	return
+	-- Concatenate path and name
+	local fileName = "" ..
+		-- Path to file
+		CurrentModPath .. "Layout/" ..
+		-- File name without path
+		origMenuId[build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
+	local fileExist = FileExist(fileName)
+	local fileOverwrite = false
 	
-	-- if (build_pos < 10) then
-		-- build_pos = "0" .. build_pos
-	-- end
-	-- local fileName = origMenuId[build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
-	-- local fileExist = FileExist(fileName)
-	-- local fileOverwrite = false
+	-- DEBUG
+	print("FileName: " .. fileName)
+	-- Can't cocatenate boolean variable
+	print("FileExist: " .. tostring(fileExist))
+	return
 	
 	-- if (fileExist) then
 		-- -- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
@@ -310,4 +291,31 @@ function ReturnAllNearby(radius, sort, pt, class)
 	end
 
 	return list
+end
+
+-- Create Shortcuts
+-- After this message ChoGGi's object is ready to use
+function OnMsg.ModsReloaded()
+	local Actions = ChoGGi.Temp.Actions
+	
+	Actions[#Actions + 1] = {ActionName = "Layout Capture",
+		ActionId = "Layout.Capture",
+		OnAction = LayoutCapture,
+		ActionShortcut = ShortcutCapture,
+		ActionBindable = true,
+	}
+	
+	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
+		ActionId = "Layout.Set.Params",
+		OnAction = LayoutSetParams,
+		ActionShortcut = ShortcutSetParams,
+		ActionBindable = true,
+	}
+	
+	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
+		ActionId = "Layout.Clear.Log",
+		OnAction = cls,
+		ActionShortcut = "Alt-Insert",
+		ActionBindable = true,
+	}
 end
