@@ -16,7 +16,9 @@
 -- pairs() returns key-value pairs and is mostly used for associative tables. key order is unspecified.
 -- ipairs() returns index-value pairs and is mostly used for numeric tables. Non numeric keys in an array are ignored, while the index order is deterministic (in numeric order).
 
--- Order of function definition is essential. Must define before first useage.
+-- Order of function definition is essential. Must define before first useage. Search "Lua Function Forward Declaration".
+
+-- Official documentation LuaFunctionDoc_AsyncIO.md.html for all "Async*()" functions in this script.
 
 -- Path to menu icon
 local menuIcon = "UI/MenuIcon.png"
@@ -158,6 +160,33 @@ local layoutSettings = {
 -- function OnMsg.ClassesPostprocess()
 -- end
 
+-- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
+-- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
+-- Added 4th argument "class": only get objects inherited from "class", provided by this parameter
+function ReturnAllNearby(radius, sort, pt, class)
+	-- local is faster then global
+	local table_sort = table.sort
+	radius = radius or 5000
+	pt = pt or GetTerrainCursor()
+
+	-- get all objects within radius
+	local list = MapGet(pt, radius, class)
+
+	-- sort list custom
+	if sort then
+		table_sort(list, function(a, b)
+			return a[sort] < b[sort]
+		end)
+	else
+		-- sort nearest
+		table_sort(list, function(a, b)
+			return a:GetVisualDist(pt) < b:GetVisualDist(pt)
+		end)
+	end
+
+	return list
+end
+
 -- Return table with objects, that match "entity" parameter
 function GetObjsByEntity(inputTable, entity)
 	local string_find = string.find
@@ -185,7 +214,6 @@ function CancelDialogBox(text, title)
 end
 
 function FileExist(fileName)
-	-- Official documentation LuaFunctionDoc_AsyncIO.md.html
 	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
 		return false
 	else
@@ -193,13 +221,16 @@ function FileExist(fileName)
 	end
 end
 
+-- Function forward declaration
+local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutTailLua, BuildLayoutLua
+
 function LayoutCapture()
 	-- Capture objects
 	local buildings = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
 	local supply    = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
 	local cables = GetObjsByEntity(supply, "Cable")
 	local pipes  = GetObjsByEntity(supply, "Tube")
-	-- ex(buildings)
+	ex(buildings)
 	-- ex(supply)
 	-- ex(cables)
 	-- ex(pipes)
@@ -237,9 +268,16 @@ function LayoutCapture()
 	local fileOverwrite = false
 	
 	-- DEBUG
+	local DEBUG = true
+	if (DEBUG) then
+		fileName = fileName .. ".txt"
+	end
 	print("FileName: " .. fileName)
 	-- Can't cocatenate boolean variable
 	print("FileExist: " .. tostring(fileExist))
+	
+	-- string err AsyncStringToFile(...) - by default overwrites file
+	print(AsyncStringToFile(fileName, BuildMetadataLua())
 	return
 	
 	-- if (fileExist) then
@@ -262,35 +300,8 @@ end
 
 function LayoutSetParams()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
-	OpenInObjectEditorDlg(layoutSettings)
 	OpenExamine(GUIDE)
-end
-
--- get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
--- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
--- added 4th argument "class": only get objects inherited from class provided this argument
-function ReturnAllNearby(radius, sort, pt, class)
-	-- local is faster then global
-	local table_sort = table.sort
-	radius = radius or 5000
-	pt = pt or GetTerrainCursor()
-
-	-- get all objects within radius
-	local list = MapGet(pt, radius, class)
-
-	-- sort list custom
-	if sort then
-		table_sort(list, function(a, b)
-			return a[sort] < b[sort]
-		end)
-	else
-		-- sort nearest
-		table_sort(list, function(a, b)
-			return a:GetVisualDist(pt) < b:GetVisualDist(pt)
-		end)
-	end
-
-	return list
+	OpenInObjectEditorDlg(layoutSettings)
 end
 
 -- Create Shortcuts
@@ -318,4 +329,70 @@ function OnMsg.ModsReloaded()
 		ActionShortcut = "Alt-Insert",
 		ActionBindable = true,
 	}
+end
+
+BuildItemsLua = function()
+
+end
+
+BuildMetadataLua = function()
+	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*", "sorted")
+	local strLayoutFiles = ""
+	for i, strFile in ipairs(layoutFiles) do
+		strLayoutFiles = strLayoutFiles .. "Layout/" .. strFile .. "\n"
+	end
+	local str = [[
+return PlaceObj('ModDef', {
+	"dependencies", {
+		PlaceObj("ModDependency", {
+			"id", "ChoGGi_Library",
+			"title", "ChoGGi's Library",
+			"version_major", 8,
+			"version_minor", 7,
+		}),
+		PlaceObj("ModDependency", {
+			"id", "ChoGGi_CheatMenu",
+			"title", "Expanded Cheat Manu",
+			"version_major", 15,
+			"version_minor", 7,
+		}),
+	},
+	'title', "Layout Mod",
+	'description', "Capture and save building's layout.",
+	'image', "ModImage.png",
+	'last_changes', "Initial release.",
+	'id', "Fixer_Layout_Mod",
+	'steam_id', "9876543210",
+	'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
+	'pops_any_uuid', "bbf577bf-dee0-4346-bad5-1037f6a827e7",
+	'author', "Fixer",
+	'version_major', 1,
+	'version', 1,
+	'lua_revision', 233360,
+	'saved_with_revision', 249143,
+	'code', {
+	-- Main Code --
+		"Code/Script.lua",
+	-- Captured Layout --
+]] .. strLayoutFiles .. [[
+	},
+	'saved', 1604768099,
+	-- 'screenshot1', "",
+	'TagTools', true,
+	'TagOther', true,
+})
+]]
+	return str
+end
+
+BuildLayoutHeadLua = function()
+
+end
+
+BuildLayoutTailLua = function()
+
+end
+
+BuildLayoutLua = function()
+
 end
