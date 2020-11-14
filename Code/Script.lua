@@ -158,7 +158,7 @@ end
 local GUIDE = '\n' .. [[
 ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 [REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need acces to AsyncIO functions to create lua files).
-	Install required mod, then copy "BinAssets" from Layout's mod folder to "%AppData%\Surviving Mars".
+	Install required mod, then copy "AppData\BinAssets" from Layout's mod folder to "%AppData%\Surviving Mars".
 [Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
 [Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
