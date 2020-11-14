@@ -6,7 +6,7 @@ return {
 	}),
 	-- Captured Layout --
 	PlaceObj('ModItemCode', {
-		'name', "Dome_Services_-_Service_Slice_Simple",
-		'FileName', "Layout/Dome_Services_-_Service_Slice_Simple.lua",
+		'name', "Layout Infrastructure - 00 - Service_Slice_Simple.lua",
+		'FileName', "Layout/Layout Infrastructure - 00 - Service_Slice_Simple.lua",
 	}),
 }

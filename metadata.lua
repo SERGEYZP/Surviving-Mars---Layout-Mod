@@ -18,6 +18,7 @@ return PlaceObj('ModDef', {
 	'image', "ModImage.png",
 	'last_changes', "Initial release.",
 	'id', "Fixer_Layout_Mod",
+	'steam_id', "9876543210",
 	'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
 	'pops_any_uuid', "bbf577bf-dee0-4346-bad5-1037f6a827e7",
 	'author', "Fixer",
@@ -29,7 +30,7 @@ return PlaceObj('ModDef', {
 	-- Main Code --
 		"Code/Script.lua",
 	-- Captured Layout --
-		"Layout/Dome_Services_-_Service_Slice_Simple.lua",
+		"Layout/Layout Infrastructure - 00 - Service_Slice_Simple.lua",
 	},
 	'saved', 1604768099,
 	-- 'screenshot1', "",
