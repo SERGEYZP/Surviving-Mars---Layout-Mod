@@ -277,7 +277,7 @@ function LayoutCapture()
 	print("FileExist: " .. tostring(fileExist))
 	
 	-- string err AsyncStringToFile(...) - by default overwrites file
-	print(AsyncStringToFile(fileName, BuildMetadataLua())
+	print(AsyncStringToFile(fileName, BuildMetadataLua()))
 	return
 	
 	-- if (fileExist) then
