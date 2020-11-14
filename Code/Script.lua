@@ -253,10 +253,6 @@ function LayoutCapture()
 		print("Nothing captured")
 		return
 	end
-	-- ex(buildings)
-	-- ex(supply)
-	-- ex(cables)
-	-- ex(pipes)
 	
 	-- Check params
 	local build_category = tonumber(layoutSettings.build_category)
@@ -462,8 +458,7 @@ end
 BuildLayoutBodyLua = function(buildings, cables, pipes)
 	-- Official documentation LuaFunctionDoc_hex.md.html
 	local str = ""
-	-- Base point (center of layout)
-	ex(buildings)
+	-- Base point (zero point)
 	local base_q, base_r
 	
 	-- Buildings
@@ -482,12 +477,17 @@ BuildLayoutBodyLua = function(buildings, cables, pipes)
 			q = q - base_q
 			r = r - base_r
 			str = str .. [[
-	PlaceObj("LayoutConstructionEntry", {
-		"template", "]] .. obj.template_name .. [[",
-		"pos", point(]] .. q .. [[, ]] .. r .. [[),
-		"dir", ]] .. HexAngleToDirection(obj) .. [[,
-		"entity", "]] .. obj:GetEntity() .. [[",
-	}),]] .. "\n\n"
+		PlaceObj("LayoutConstructionEntry", {
+			"template", "]] .. obj.template_name .. [[",
+			"pos", point(]] .. q .. [[, ]] .. r .. [[),
+			"dir", ]] .. HexAngleToDirection(obj) .. [[,
+			"entity", "]] .. obj:GetEntity() .. [[",]] .. "\n"
+			if (obj.template_name == "UniversalStorageDepot") then
+				str = str .. [[
+			"instant", true,]] .. "\n"
+			end
+			str = str .. [[
+		}),]] .. "\n\n"
 		end
 	end
 	
