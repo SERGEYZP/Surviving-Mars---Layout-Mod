@@ -7,20 +7,20 @@ function OnMsg.ClassesPostprocess()
 	end
 
 	-- Common id string, for simplicity and correct logic used in several places below
-	local commonId = "Service_Slice_Simple"
+	local id = "Service_Slice_Simple"
 	-- Common id string, to identify menu, in which layout object will be placed
-	local buildCategory = "Layout Infrastructure"
+	local build_category = "Layout Infrastructure"
 
 	-- Info from ChoGGi's Layout Example
 	PlaceObj("BuildingTemplate", {
 		-- "Id", "LayoutList", "Group" must begin with capital letter!!! All is case sensitive
 		-- keep it unique folks 
-		"Id", commonId,
+		"Id", id,
 		-- "LayoutList" id corresponds to the "LayoutConstruction" below
-		"LayoutList", commonId,
+		"LayoutList", id,
 		-- what group to add it to
-		"Group", buildCategory,
-		"build_category", buildCategory,
+		"Group", build_category,
+		"build_category", build_category,
 		-- pos in build menu
 		"build_pos", 0,
 		"display_name", "Service Slice Simple",
@@ -36,7 +36,7 @@ function OnMsg.ClassesPostprocess()
 	PlaceObj("LayoutConstruction", {
 		-- Don't write here like this: "group" = "Default" ... this cause error
 		group = "Default",
-		id = commonId,
+		id = id,
 
 		-- "template" -> String -> Class Template.
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Tools" -> "Ged Editor".

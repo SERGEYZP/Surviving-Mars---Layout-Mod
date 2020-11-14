@@ -103,10 +103,25 @@ end
 
 ---- MAIN CODE ----
 
+-- DEBUG
+-- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
+-- local DEBUG = false
+local DEBUG = true
+
 local ShortcutCapture   = "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
 -- Function forward declaration
-local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutTailLua, BuildLayoutLua
+local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua
+
+local numCapturedObjects = 0
+local layoutSettings = {
+	id = "SetIdForLayoutFile",
+	display_name = "Display Name",
+	description = "Layout Desctiption",
+	build_category = 15,
+	build_pos = 0,
+	radius = nil,
+}
 
 function TableToString(inputTable)
 	local str = ""
@@ -150,14 +165,6 @@ WHAT TO DO:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
 "build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId)
 
-local layoutSettings = {
-	id = "SetIdForLayoutFile",
-	display_name = "Display Name",
-	description = "Layout Desctiption",
-	build_category = 15,
-	build_pos = 0,
-	radius = nil,
-}
 
 -- function OnMsg.ClassesPostprocess()
 -- end
@@ -237,6 +244,15 @@ function LayoutCapture()
 	local supply    = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
 	local cables = GetObjsByEntity(supply, "Cable")
 	local pipes  = GetObjsByEntity(supply, "Tube")
+
+	numCapturedObjects = #buildings + #cables + #pipes
+	
+	-- Is table empty
+	if ((next(buildings) == nil) and (next(cables) == nil) and (next(pipes) == nil)) then
+		-- TODO Show notification(Nothing captured)
+		print("Nothing captured")
+		return
+	end
 	-- ex(buildings)
 	-- ex(supply)
 	-- ex(cables)
@@ -288,11 +304,6 @@ function LayoutCapture()
 	local fileExist = FileExist(layoutFileName)
 	local fileOverwrite = false
 	
-	-- DEBUG
-	-- Open in Notepad++, select two strings and hit [Ctrl-Q] to toggle comment
-	-- local DEBUG = false
-	local DEBUG = true
-	
 	if (DEBUG) then
 		local dbgExt = ".txt"
 		itemsFileName = itemsFileName .. dbgExt
@@ -304,9 +315,10 @@ function LayoutCapture()
 	print("FileExist: " .. tostring(fileExist))
 	
 	-- string err AsyncStringToFile(...) - by default overwrites file
+	-- "items.lua" not needed. Empty is OK.
 	-- print(AsyncStringToFile(itemsFileName, BuildItemsLua()))
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
-	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
+	print(AsyncStringToFile(layoutFileName, BuildLayoutLua(buildings, cables, pipes)))
 	return
 	
 	-- if (fileExist) then
@@ -323,8 +335,9 @@ function LayoutCapture()
 			-- "Cancel Layout Capture"
 		-- )
 	-- end
-	-- -- TODO 
-	-- print("Layout Saved: " .. CurrentModPath .. "Layout\\".. layoutSettings.id .. ".lua")
+	-- TODO 
+	print("Captured Objects: " .. numCapturedObjects)
+	print("Layout Saved: " .. layoutFileName)
 end
 
 function LayoutSetParams()
@@ -361,11 +374,10 @@ function OnMsg.ModsReloaded()
 end
 
 BuildItemsLua = function()
-
 end
 
 BuildMetadataLua = function()
-	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*", "relative, sorted")
+	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*.lua", "relative, sorted")
 	local strLayoutFiles = ""
 	for i, strFile in ipairs(layoutFiles) do
 		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Layout/' .. strFile .. '",\n'
@@ -417,18 +429,18 @@ end
 BuildLayoutHeadLua = function()
 	local str = [[
 function OnMsg.ClassesPostprocess()
-	if BuildingTemplates.]] .. layoutSettings.id .. [[then
+	if BuildingTemplates.]] .. layoutSettings.id .. [[ then
 		return
 	end
 
-	local commonId = "]] .. layoutSettings.id .. [["
-	local buildCategory = "]] .. menuId[layoutSettings.build_category] .. [["
+	local id = "]] .. layoutSettings.id .. [["
+	local build_category = "]] .. menuId[layoutSettings.build_category] .. [["
 
 	PlaceObj("BuildingTemplate", {
-		"Id", commonId,
-		"LayoutList", commonId,
-		"Group", buildCategory,
-		"build_category", buildCategory,
+		"Id", id,
+		"LayoutList", id,
+		"Group", build_category,
+		"build_category", build_category,
 		"build_pos", ]] .. layoutSettings.build_pos .. [[,
 		"display_name", "]] .. layoutSettings.display_name .. [[",
 		"display_name_pl", "]] .. layoutSettings.display_name .. [[",
@@ -441,10 +453,83 @@ function OnMsg.ClassesPostprocess()
 
 	PlaceObj("LayoutConstruction", {
 		group = "Default",
-		id = commonId,
+		id = id,
 
 ]]
 
+	return str
+end
+
+BuildLayoutBodyLua = function(buildings, cables, pipes)
+	-- Official documentation LuaFunctionDoc_hex.md.html
+	local str = ""
+	-- Base point (center of layout)
+	ex(buildings)
+	local base_q, base_r
+	
+	-- Buildings
+	-- ~= is equivalent of !=
+	if (next(buildings) ~= nil) then
+		-- If base point not set before, set it now. If "buildings" is empty, get object for base point from "cables" or "pipes"
+		if (not base_q or not base_r) then
+			local baseObj = buildings[1]
+			base_q, base_r = WorldToHex(baseObj)
+			if (DEBUG) then
+				OpenExamine(baseObj)
+			end
+		end
+		for i, obj in ipairs(buildings) do
+			local q, r = WorldToHex(obj)
+			q = q - base_q
+			r = r - base_r
+			str = str .. [[
+	PlaceObj("LayoutConstructionEntry", {
+		"template", "]] .. obj.template_name .. [[",
+		"pos", point(]] .. q .. [[, ]] .. r .. [[),
+		"dir", ]] .. HexAngleToDirection(obj) .. [[,
+		"entity", "]] .. obj:GetEntity() .. [[",
+	}),]] .. "\n\n"
+		end
+	end
+	
+	-- -- Cables
+	-- if (next(cables) ~= nil) then
+		-- if (not base_q or not base_r) then
+			-- base_q, base_r = WorldToHex(cables[1])
+		-- end
+		-- for i, obj in ipairs(cables) do
+			-- local q, r = WorldToHex(obj)
+			-- q = q - base_q
+			-- r = r - base_r
+			-- str = str .. [[
+			-- PlaceObj("LayoutConstructionEntry", {
+				-- "template", "]] .. obj.template_name .. [[",
+				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
+				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
+				-- "entity", "]] .. obj:GetEntity() .. [[",
+			-- }),]] .. "\n\n"
+		-- end
+	-- end
+	
+	-- -- Pipes
+	-- if (next(pipes) ~= nil) then
+		-- if (not base_q or not base_r) then
+			-- base_q, base_r = WorldToHex(pipes[1])
+		-- end
+		-- for i, obj in ipairs(pipes) do
+			-- local q, r = WorldToHex(obj)
+			-- q = q - base_q
+			-- r = r - base_r
+			-- str = str .. [[
+			-- PlaceObj("LayoutConstructionEntry", {
+				-- "template", "]] .. obj.template_name .. [[",
+				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
+				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
+				-- "entity", "]] .. obj:GetEntity() .. [[",
+			-- }),]] .. "\n\n"
+		-- end
+	-- end
+	
 	return str
 end
 
@@ -456,6 +541,6 @@ end
 	return str
 end
 
-BuildLayoutLua = function()
-	return BuildLayoutHeadLua() .. BuildLayoutTailLua()
+BuildLayoutLua = function(buildings, cables, pipes)
+	return BuildLayoutHeadLua() .. BuildLayoutBodyLua(buildings, cables, pipes) .. BuildLayoutTailLua()
 end
