@@ -1,14 +1,6 @@
 -- TODO -- Ask ChoGGi to add hotkey to "Close dialogs"
 
----- BUILD MENUS ----
-
--- Ingame table with root menus, which appears on hotkey [B]:
--- Enhanced Cheat Menu -> Console -> ~BuildCategories
-
--- Ingame table with menu subcategories (example is [Depot] in [Storages]):
--- Enhanced Cheat Menu -> Console -> ~BuildMenuSubcategories
-
--- Empty menu is not visible. Add building, and menu will appear.
+---- LUA STUFF ----
 
 -- GlobalVar("tmp", {"param1","param2",}) <- this line will not create object, but boolean == false :(
 -- GlobalVar("tmp", {}) tmp = {[1] = "param1", [2] = "param2",} <- create empty object, add params
@@ -19,6 +11,26 @@
 -- Order of function definition is essential. Must define before first useage. Search "Lua Function Forward Declaration".
 
 -- Official documentation LuaFunctionDoc_AsyncIO.md.html for all "Async*()" functions in this script.
+
+-- Operator precedence in Lua follows the table below, from the higher to the lower priority:
+	-- ^
+	-- not  - (unary)
+	-- *   /
+	-- +   -
+	-- ..
+	-- <   >   <=  >=  ~=  ==
+	-- and
+	-- or
+
+---- BUILD MENUS ----
+
+-- Ingame table with root menus, which appears on hotkey [B]:
+-- Enhanced Cheat Menu -> Console -> ~BuildCategories
+
+-- Ingame table with menu subcategories (example is [Depot] in [Storages]):
+-- Enhanced Cheat Menu -> Console -> ~BuildMenuSubcategories
+
+-- Empty menu is not visible. Add building, and menu will appear.
 
 -- Path to menu icon
 local menuIcon = "UI/MenuIcon.png"
@@ -110,10 +122,16 @@ local DEBUG = true
 
 local ShortcutCapture   = "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
+
 -- Function forward declaration
 local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua
+local WriteToFiles
 
+local buildings, cables, pipes
 local numCapturedObjects = 0
+
+local metadataFileName, layoutFilePath, layoutFileNameNoPath, layoutFileName
+
 local layoutSettings = {
 	id = "SetIdForLayoutFile",
 	display_name = "Display Name",
@@ -123,6 +141,8 @@ local layoutSettings = {
 	radius = nil,
 }
 
+-- Forward declaration with this func not work.
+-- If make forward declaration and place function's body below "local GUIDE", "local GUIDE" will call nil "TableToString" variable
 function TableToString(inputTable)
 	local str = ""
 	for i, v in ipairs(inputTable) do
@@ -222,14 +242,6 @@ function CancelDialogBox(text, title)
 	)
 end
 
-function FileExist(fileName)
-	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
-		return false
-	else
-		return true
-	end
-end
-
 -- Trim space http://lua-users.org/wiki/StringTrim
 function TrimSpace(str)
 	-- "%s" - space
@@ -238,17 +250,26 @@ function TrimSpace(str)
 	return (str:gsub("^%s*(.-)%s*$", "%1"))
 end
 
+function FileExist(fileName)
+	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
+		return false
+	else
+		return true
+	end
+end
+
 function LayoutCapture()
 	-- Capture objects
-	local buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
+	buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
 	local supply    = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
-	local cables = GetObjsByEntity(supply, "Cable")
-	local pipes  = GetObjsByEntity(supply, "Tube")
+	cables = GetObjsByEntity(supply, "Cable")
+	pipes  = GetObjsByEntity(supply, "Tube")
 
 	numCapturedObjects = #buildings + #cables + #pipes
 	
 	-- Is table empty
-	if ((next(buildings) == nil) and (next(cables) == nil) and (next(pipes) == nil)) then
+	-- "==" has higher priority than "and"
+	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
 		-- TODO Show notification(Nothing captured)
 		print("Nothing captured")
 		return
@@ -286,53 +307,57 @@ function LayoutCapture()
 	end
 	
 	-- Files prepare
-	local itemsFileName = CurrentModPath .. "items.lua"
-	local metadataFileName = CurrentModPath .. "metadata.lua"
+	metadataFileName = CurrentModPath .. "metadata.lua"
 	if (build_pos < 10) then
 		build_pos = "0" .. build_pos
 	end
+	-- Path to file
+	layoutFilePath = "" .. CurrentModPath .. "Layout/"
+	-- File name without path
+	layoutFileNameNoPath = "" .. origMenuId[build_category] .. " - " .. build_pos .. " - " .. id .. ".lua"
 	-- Concatenate path and name
-	local layoutFileName = "" ..
-		-- Path to file
-		CurrentModPath .. "Layout/" ..
-		-- File name without path
-		origMenuId[build_category] .. " - " .. build_pos .. " - " .. id .. ".lua"
-	local fileExist = FileExist(layoutFileName)
-	local fileOverwrite = false
-	
+	layoutFileName = layoutFilePath ..layoutFileNameNoPath
+		
 	if (DEBUG) then
 		local dbgExt = ".txt"
-		itemsFileName = itemsFileName .. dbgExt
 		layoutFileName = layoutFileName .. dbgExt
+		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
 		metadataFileName = metadataFileName .. dbgExt
 	end
-	print("FileName: " .. layoutFileName)
+	
+	local fileExist = FileExist(layoutFileName)
+	
+	print("FileName: " .. layoutFileNameNoPath)
 	-- Can't cocatenate boolean variable
 	print("FileExist: " .. tostring(fileExist))
 	
+	if (fileExist) then
+		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
+		ChoGGi.ComFuncs.QuestionBox(
+			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
+			function(answer)
+				if answer then
+					print("File overwrited")
+					WriteToFiles()
+				end
+			end,
+			"Overwrite file?",
+			"Yes",
+			"Cancel Layout Capture"
+		)
+	else
+		WriteToFiles()
+	end
+end
+
+WriteToFiles = function()
 	-- string err AsyncStringToFile(...) - by default overwrites file
-	-- "items.lua" not needed. Empty is OK.
-	-- print(AsyncStringToFile(itemsFileName, BuildItemsLua()))
+	-- "items.lua" not needed. Empty is OK. It used in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
-	print(AsyncStringToFile(layoutFileName, BuildLayoutLua(buildings, cables, pipes)))
-	
-	-- if (fileExist) then
-		-- -- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
-		-- ChoGGi.ComFuncs.QuestionBox(
-			-- "Layout file with name already exist: " .. layoutFileName,
-			-- function(answer)
-				-- if answer then
-					-- fileOverwrite = true
-				-- end
-			-- end,
-			-- "Overwrite file?",
-			-- "Yes",
-			-- "Cancel Layout Capture"
-		-- )
-	-- end
+	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
 	-- TODO 
 	print("Captured Objects: " .. numCapturedObjects)
-	print("Layout Saved: " .. layoutFileName)
+	print("Layout Saved: " .. layoutFileNameNoPath)
 end
 
 function LayoutSetParams()
@@ -455,7 +480,7 @@ function OnMsg.ClassesPostprocess()
 	return str
 end
 
-BuildLayoutBodyLua = function(buildings, cables, pipes)
+BuildLayoutBodyLua = function()
 	-- Official documentation LuaFunctionDoc_hex.md.html
 	local str = ""
 	-- Base point (zero point)
@@ -540,6 +565,6 @@ end
 	return str
 end
 
-BuildLayoutLua = function(buildings, cables, pipes)
-	return BuildLayoutHeadLua() .. BuildLayoutBodyLua(buildings, cables, pipes) .. BuildLayoutTailLua()
+BuildLayoutLua = function()
+	return BuildLayoutHeadLua() .. BuildLayoutBodyLua() .. BuildLayoutTailLua()
 end
