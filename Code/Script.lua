@@ -1,14 +1,6 @@
 -- TODO -- Ask ChoGGi to add hotkey to "Close dialogs"
 
----- BUILD MENUS ----
-
--- Ingame table with root menus, which appears on hotkey [B]:
--- Enhanced Cheat Menu -> Console -> ~BuildCategories
-
--- Ingame table with menu subcategories (example is [Depot] in [Storages]):
--- Enhanced Cheat Menu -> Console -> ~BuildMenuSubcategories
-
--- Empty menu is not visible. Add building, and menu will appear.
+---- LUA STUFF ----
 
 -- GlobalVar("tmp", {"param1","param2",}) <- this line will not create object, but boolean == false :(
 -- GlobalVar("tmp", {}) tmp = {[1] = "param1", [2] = "param2",} <- create empty object, add params
@@ -19,6 +11,26 @@
 -- Order of function definition is essential. Must define before first useage. Search "Lua Function Forward Declaration".
 
 -- Official documentation LuaFunctionDoc_AsyncIO.md.html for all "Async*()" functions in this script.
+
+-- Operator precedence in Lua follows the table below, from the higher to the lower priority:
+	-- ^
+	-- not  - (unary)
+	-- *   /
+	-- +   -
+	-- ..
+	-- <   >   <=  >=  ~=  ==
+	-- and
+	-- or
+
+---- BUILD MENUS ----
+
+-- Ingame table with root menus, which appears on hotkey [B]:
+-- Enhanced Cheat Menu -> Console -> ~BuildCategories
+
+-- Ingame table with menu subcategories (example is [Depot] in [Storages]):
+-- Enhanced Cheat Menu -> Console -> ~BuildMenuSubcategories
+
+-- Empty menu is not visible. Add building, and menu will appear.
 
 -- Path to menu icon
 local menuIcon = "UI/MenuIcon.png"
@@ -103,9 +115,34 @@ end
 
 ---- MAIN CODE ----
 
+-- DEBUG
+-- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
+-- local DEBUG = false
+local DEBUG = true
+
 local ShortcutCapture   = "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
 
+-- Function forward declaration
+local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua
+local WriteToFiles
+
+local buildings, cables, pipes
+local numCapturedObjects = 0
+
+local metadataFileName, layoutFilePath, layoutFileNameNoPath, layoutFileName
+
+local layoutSettings = {
+	id = "SetIdForLayoutFile",
+	display_name = "Display Name",
+	description = "Layout Desctiption",
+	build_category = 15,
+	build_pos = 0,
+	radius = nil,
+}
+
+-- Forward declaration with this func not work.
+-- If make forward declaration and place function's body below "local GUIDE", "local GUIDE" will call nil "TableToString" variable
 function TableToString(inputTable)
 	local str = ""
 	for i, v in ipairs(inputTable) do
@@ -121,7 +158,7 @@ end
 local GUIDE = '\n' .. [[
 ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 [REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need acces to AsyncIO functions to create lua files).
-	Install required mod, then copy "BinAssets" from Layout's mod folder to "%AppData%\Surviving Mars".
+	Install required mod, then copy "AppData\BinAssets" from Layout's mod folder to "%AppData%\Surviving Mars".
 [Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
 [Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
@@ -133,7 +170,7 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
 	Set parameters in "Edit Object" window:
-		"id" (must be unique) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
 		"radius" (nil or positive number) capture radius, multiply measured value in meters by 100.
@@ -148,14 +185,6 @@ WHAT TO DO:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
 "build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId)
 
-local layoutSettings = {
-	id = "SetIdForLayoutFile",
-	display_name = "Display Name",
-	description = "Layout Desctiption",
-	build_category = 15,
-	build_pos = 0,
-	radius = nil,
-}
 
 -- function OnMsg.ClassesPostprocess()
 -- end
@@ -213,6 +242,14 @@ function CancelDialogBox(text, title)
 	)
 end
 
+-- Trim space http://lua-users.org/wiki/StringTrim
+function TrimSpace(str)
+	-- "%s" - space
+	-- "."  - 'greedy' any character
+	-- ".-" - 'lazy' any character
+	return (str:gsub("^%s*(.-)%s*$", "%1"))
+end
+
 function FileExist(fileName)
 	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
 		return false
@@ -221,22 +258,26 @@ function FileExist(fileName)
 	end
 end
 
--- Function forward declaration
-local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutTailLua, BuildLayoutLua
-
 function LayoutCapture()
 	-- Capture objects
-	local buildings = ReturnAllNearby(layoutSettings.radius, "class", nil, "Building")
-	local supply    = ReturnAllNearby(layoutSettings.radius, "class", nil, "BreakableSupplyGridElement")
-	local cables = GetObjsByEntity(supply, "Cable")
-	local pipes  = GetObjsByEntity(supply, "Tube")
-	ex(buildings)
-	-- ex(supply)
-	-- ex(cables)
-	-- ex(pipes)
+	buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
+	local supply    = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
+	cables = GetObjsByEntity(supply, "Cable")
+	pipes  = GetObjsByEntity(supply, "Tube")
+
+	numCapturedObjects = #buildings + #cables + #pipes
+	
+	-- Is table empty
+	-- "==" has higher priority than "and"
+	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
+		-- TODO Show notification(Nothing captured)
+		print("Nothing captured")
+		return
+	end
 	
 	-- Check params
 	local build_category = tonumber(layoutSettings.build_category)
+	layoutSettings.build_category = build_category
 	if (build_category < 1 or build_category > #origMenuId) then
 		CancelDialogBox(
 			'"build_category" - enter number from 1 to 15',
@@ -246,6 +287,7 @@ function LayoutCapture()
 	end
 	
 	local build_pos = tonumber(layoutSettings.build_pos)
+	layoutSettings.build_pos = build_pos
 	if (build_pos < 0 or build_pos > 99) then
 		CancelDialogBox(
 			'"build_pos" - enter number from 1 to 99',
@@ -254,56 +296,68 @@ function LayoutCapture()
 		return
 	end
 	
+	local id = TrimSpace(tostring(layoutSettings.id))
+	layoutSettings.id = id
+	if (string.find(id, " ") or string.find(id, "\t")) then
+		CancelDialogBox(
+			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
+			'"id" - not allowed value: ' .. id
+		)
+		return
+	end
+	
 	-- Files prepare
-	local itemsFileName = CurrentModPath .. "items.lua"
-	local metadataFileName = CurrentModPath .. "metadata.lua"
+	metadataFileName = CurrentModPath .. "metadata.lua"
 	if (build_pos < 10) then
 		build_pos = "0" .. build_pos
 	end
+	-- Path to file
+	layoutFilePath = "" .. CurrentModPath .. "Layout/"
+	-- File name without path
+	layoutFileNameNoPath = "" .. origMenuId[build_category] .. " - " .. build_pos .. " - " .. id .. ".lua"
 	-- Concatenate path and name
-	local layoutFileName = "" ..
-		-- Path to file
-		CurrentModPath .. "Layout/" ..
-		-- File name without path
-		origMenuId[build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
-	local fileExist = FileExist(layoutFileName)
-	local fileOverwrite = false
-	
-	-- DEBUG
-	-- Open in Notepad++, select two strings and hit [Ctrl-Q] to toggle comment
-	-- local DEBUG = false
-	local DEBUG = true
-	
+	layoutFileName = layoutFilePath ..layoutFileNameNoPath
+		
 	if (DEBUG) then
 		local dbgExt = ".txt"
-		itemsFileName = itemsFileName .. dbgExt
 		layoutFileName = layoutFileName .. dbgExt
+		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
 		metadataFileName = metadataFileName .. dbgExt
 	end
-	print("FileName: " .. layoutFileName)
+	
+	local fileExist = FileExist(layoutFileName)
+	
+	print("FileName: " .. layoutFileNameNoPath)
 	-- Can't cocatenate boolean variable
 	print("FileExist: " .. tostring(fileExist))
 	
+	if (fileExist) then
+		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
+		ChoGGi.ComFuncs.QuestionBox(
+			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
+			function(answer)
+				if answer then
+					print("File overwrited")
+					WriteToFiles()
+				end
+			end,
+			"Overwrite file?",
+			"Yes",
+			"Cancel Layout Capture"
+		)
+	else
+		WriteToFiles()
+	end
+end
+
+WriteToFiles = function()
 	-- string err AsyncStringToFile(...) - by default overwrites file
+	-- "items.lua" not needed. Empty is OK. It used in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
-	return
-	
-	-- if (fileExist) then
-		-- -- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
-		-- ChoGGi.ComFuncs.QuestionBox(
-			-- "Layout file with name already exist: " .. layoutFileName,
-			-- function(answer)
-				-- if answer then
-					-- fileOverwrite = true
-				-- end
-			-- end,
-			-- "Overwrite file?",
-			-- "Yes",
-			-- "Cancel Layout Capture"
-		-- )
-	-- end
-	-- -- TODO 
-	-- print("Layout Saved: " .. CurrentModPath .. "Layout\\".. layoutSettings.id .. ".lua")
+	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
+	-- TODO 
+	print("Captured Objects: " .. numCapturedObjects)
+	print("Layout Saved: " .. layoutFileNameNoPath)
 end
 
 function LayoutSetParams()
@@ -340,11 +394,10 @@ function OnMsg.ModsReloaded()
 end
 
 BuildItemsLua = function()
-
 end
 
 BuildMetadataLua = function()
-	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*", "relative, sorted")
+	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*.lua", "relative, sorted")
 	local strLayoutFiles = ""
 	for i, strFile in ipairs(layoutFiles) do
 		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Layout/' .. strFile .. '",\n'
@@ -394,13 +447,124 @@ return PlaceObj('ModDef', {
 end
 
 BuildLayoutHeadLua = function()
+	local str = [[
+function OnMsg.ClassesPostprocess()
+	if BuildingTemplates.]] .. layoutSettings.id .. [[ then
+		return
+	end
 
+	local id = "]] .. layoutSettings.id .. [["
+	local build_category = "]] .. menuId[layoutSettings.build_category] .. [["
+
+	PlaceObj("BuildingTemplate", {
+		"Id", id,
+		"LayoutList", id,
+		"Group", build_category,
+		"build_category", build_category,
+		"build_pos", ]] .. layoutSettings.build_pos .. [[,
+		"display_name", "]] .. layoutSettings.display_name .. [[",
+		"display_name_pl", "]] .. layoutSettings.display_name .. [[",
+		"description", "]] .. layoutSettings.description .. [[",
+		"display_icon", "]] .. "UI/" .. layoutSettings.id .. ".png" .. [[",
+		"template_class", "LayoutConstructionBuilding",
+		"entity", "InvisibleObject",
+		"construction_mode", "layout",
+	})
+
+	PlaceObj("LayoutConstruction", {
+		group = "Default",
+		id = id,
+
+]]
+
+	return str
+end
+
+BuildLayoutBodyLua = function()
+	-- Official documentation LuaFunctionDoc_hex.md.html
+	local str = ""
+	-- Base point (zero point)
+	local base_q, base_r
+	
+	-- Buildings
+	-- ~= is equivalent of !=
+	if (next(buildings) ~= nil) then
+		-- If base point not set before, set it now. If "buildings" is empty, get object for base point from "cables" or "pipes"
+		if (not base_q or not base_r) then
+			local baseObj = buildings[1]
+			base_q, base_r = WorldToHex(baseObj)
+			if (DEBUG) then
+				OpenExamine(baseObj)
+			end
+		end
+		for i, obj in ipairs(buildings) do
+			local q, r = WorldToHex(obj)
+			q = q - base_q
+			r = r - base_r
+			str = str .. [[
+		PlaceObj("LayoutConstructionEntry", {
+			"template", "]] .. obj.template_name .. [[",
+			"pos", point(]] .. q .. [[, ]] .. r .. [[),
+			"dir", ]] .. HexAngleToDirection(obj) .. [[,
+			"entity", "]] .. obj:GetEntity() .. [[",]] .. "\n"
+			if (obj.template_name == "UniversalStorageDepot") then
+				str = str .. [[
+			"instant", true,]] .. "\n"
+			end
+			str = str .. [[
+		}),]] .. "\n\n"
+		end
+	end
+	
+	-- -- Cables
+	-- if (next(cables) ~= nil) then
+		-- if (not base_q or not base_r) then
+			-- base_q, base_r = WorldToHex(cables[1])
+		-- end
+		-- for i, obj in ipairs(cables) do
+			-- local q, r = WorldToHex(obj)
+			-- q = q - base_q
+			-- r = r - base_r
+			-- str = str .. [[
+			-- PlaceObj("LayoutConstructionEntry", {
+				-- "template", "]] .. obj.template_name .. [[",
+				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
+				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
+				-- "entity", "]] .. obj:GetEntity() .. [[",
+			-- }),]] .. "\n\n"
+		-- end
+	-- end
+	
+	-- -- Pipes
+	-- if (next(pipes) ~= nil) then
+		-- if (not base_q or not base_r) then
+			-- base_q, base_r = WorldToHex(pipes[1])
+		-- end
+		-- for i, obj in ipairs(pipes) do
+			-- local q, r = WorldToHex(obj)
+			-- q = q - base_q
+			-- r = r - base_r
+			-- str = str .. [[
+			-- PlaceObj("LayoutConstructionEntry", {
+				-- "template", "]] .. obj.template_name .. [[",
+				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
+				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
+				-- "entity", "]] .. obj:GetEntity() .. [[",
+			-- }),]] .. "\n\n"
+		-- end
+	-- end
+	
+	return str
 end
 
 BuildLayoutTailLua = function()
-
+	local str = [[
+	})
+end
+]]
+	return str
 end
 
 BuildLayoutLua = function()
-
+	return BuildLayoutHeadLua() .. BuildLayoutBodyLua() .. BuildLayoutTailLua()
 end
