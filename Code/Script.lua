@@ -347,7 +347,7 @@ BuildMetadataLua = function()
 	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*", "sorted")
 	local strLayoutFiles = ""
 	for i, strFile in ipairs(layoutFiles) do
-		strLayoutFiles = "\t\t" .. strLayoutFiles .. "Layout/" .. strFile .. "\n"
+		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Layout/' .. strFile .. '","\n'
 	end
 	local str = [[
 return PlaceObj('ModDef', {
