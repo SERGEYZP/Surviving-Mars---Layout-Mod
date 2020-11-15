@@ -23,6 +23,9 @@
 	-- and
 	-- or
 
+
+
+
 ---- BUILD MENUS ----
 
 -- Ingame table with root menus, which appears on hotkey [B]:
@@ -73,11 +76,17 @@ function OnMsg.ClassesBuilt()
 	local bc = BuildCategories
 	local id = menuId[#menuId] -- #var - get size of table "var"
 	if not table.find(bc, "id", id) then
+		-- TODO change to proper way? ... PlaceObj('BuildMenuSubcategory', ... )
 		bc[#bc + 1] = {
 			id = id,
 			name = displayName,
 			image = CurrentModPath .. menuIcon,
-			-- highlight = "UI/Icons/Buildings/dinner_shine.tga", TODO not needed?
+			-- “on hover” effects; this should probably always be "UI/Icons/bmc_infrastructure_shine.tga" to have the default “on hover” effect
+			-- TODO
+			-- highlight = "UI/Icons/bmc_infrastructure_shine.tga",
+			-- highlight = "UI/Icons/bmc_dome_buildings_shine.tga",
+			-- highlight = "UI/Icons/Buildings/dinner_shine.tga",
+			-- highlight or highlight_img param? From different sources, not shure.
 		}
 	end
 	
@@ -102,10 +111,11 @@ function OnMsg.ClassesBuilt()
 				-- This is useful in cases like the “Depots” and “Storage” subcategory.
 				-- It is far simpler to use the “cycle visual variant” keys, instead of
 				-- going through the build menu, when placing multiple depots for different resources.
-				-- allow_template_variants = true -- by default it's true
+				-- By default it's true.
+				-- allow_template_variants = true,
 				-- action = function(self, context, button)
 					-- print("You Selected Subcategory")
-				-- end
+				-- end,
 			})
 		end
 	end
@@ -114,15 +124,54 @@ end
 
 
 
----- MAIN CODE ----
+---- CREATE SHORCUTS
+
+local ShortcutCapture   = "Ctrl-Insert"
+local ShortcutSetParams = "Shift-Insert"
+
+-- Function forward declaration
+local LayoutCapture, LayoutSetParams
+
+-- After this message ChoGGi's object is ready to use
+function OnMsg.ModsReloaded()
+	local Actions = ChoGGi.Temp.Actions
+	
+	Actions[#Actions + 1] = {ActionName = "Layout Capture",
+		ActionId = "Layout.Capture",
+		OnAction = LayoutCapture,
+		ActionShortcut = ShortcutCapture,
+		ActionBindable = true,
+	}
+	
+	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
+		ActionId = "Layout.Set.Params",
+		OnAction = LayoutSetParams,
+		ActionShortcut = ShortcutSetParams,
+		ActionBindable = true,
+	}
+	
+	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
+		ActionId = "Layout.Clear.Log",
+		OnAction = cls,
+		ActionShortcut = "Alt-Insert",
+		ActionBindable = true,
+	}
+end
+
+
+
+
+---- DEBUG ----
 
 -- DEBUG
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
 -- local DEBUG = false
 local DEBUG = true
 
-local ShortcutCapture   = "Ctrl-Insert"
-local ShortcutSetParams = "Shift-Insert"
+
+
+
+---- MAIN CODE ----
 
 -- Function forward declaration
 local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua
@@ -259,7 +308,7 @@ function FileExist(fileName)
 	end
 end
 
-function LayoutCapture()
+LayoutCapture = function()
 	-- Capture objects
 	buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
 	local supply    = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
@@ -361,37 +410,10 @@ WriteToFiles = function()
 	print("Layout Saved: " .. layoutFileNameNoPath)
 end
 
-function LayoutSetParams()
+LayoutSetParams = function()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	OpenExamine(GUIDE)
 	OpenInObjectEditorDlg(layoutSettings)
-end
-
--- Create Shortcuts
--- After this message ChoGGi's object is ready to use
-function OnMsg.ModsReloaded()
-	local Actions = ChoGGi.Temp.Actions
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Capture",
-		ActionId = "Layout.Capture",
-		OnAction = LayoutCapture,
-		ActionShortcut = ShortcutCapture,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
-		ActionId = "Layout.Set.Params",
-		OnAction = LayoutSetParams,
-		ActionShortcut = ShortcutSetParams,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
-		ActionId = "Layout.Clear.Log",
-		OnAction = cls,
-		ActionShortcut = "Alt-Insert",
-		ActionBindable = true,
-	}
 end
 
 BuildItemsLua = function()
