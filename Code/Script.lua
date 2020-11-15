@@ -159,8 +159,9 @@ end
 
 ---- CREATE SHORCUTS
 
-local ShortcutCapture   = "Ctrl-Insert"
+local ShortcutCapture   =  "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
+local ShortcutReloadLua =  "LWin-Insert"
 
 -- Function forward declaration
 local LayoutCapture, LayoutSetParams
@@ -192,7 +193,7 @@ function OnMsg.ModsReloaded()
 			ActionName = "Layout Reload Lua",
 			ActionId = "Layout.Reload.Lua",
 			OnAction = cls,
-			ActionShortcut = "LWin-Insert",
+			ActionShortcut = ShortcutReloadLua,
 			ActionBindable = true,
 		}
 	end
@@ -208,7 +209,6 @@ local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, B
 local WriteToFiles
 
 local buildings, cables, pipes
-local numCapturedObjects = 0
 
 local metadataFileName, layoutFilePath, layoutFileNameNoPath, layoutFileName
 
@@ -217,11 +217,11 @@ local default_build_pos = 0
 local default_radius = 10000
 
 local layoutSettings = {
-	id = "SetIdForLayoutFile",
-	display_name = "Display Name",
-	description = "Layout Desctiption",
 	build_category = default_build_category,
 	build_pos = default_build_pos,
+	description = "Layout Desctiption",
+	display_name = "Display Name",
+	id = "SetIdForLayoutFile",
 	radius = default_radius,
 }
 
@@ -254,11 +254,11 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
 	Set parameters in "Edit Object" window:
-		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
+		"description", "display_name" - as you like.
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"radius" (nil or positive number [to infinity and beyond]) capture radius, multiply measured value in meters by 100.
-		[others] - as you like.
 	Close all windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. ']\n' .. [[
@@ -335,15 +335,7 @@ function TrimSpace(str)
 	return (str:gsub("^%s*(.-)%s*$", "%1"))
 end
 
-function FileExist(fileName)
-	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
-		return false
-	else
-		return true
-	end
-end
-
--- Return "true" - params OK, "false" - params WRONG
+-- Return "false" - params OK, "true" - params WRONG
 function CheckInputParams()
 	local build_category = tonumber(layoutSettings.build_category)
 	layoutSettings.build_category = build_category
@@ -354,7 +346,7 @@ function CheckInputParams()
 			'"build_category" - enter number from 1 to 15',
 			'"build_category" - not allowed value: ' .. build_category
 		)
-		return false
+		return true
 	end
 	
 	local build_pos = tonumber(layoutSettings.build_pos)
@@ -365,8 +357,13 @@ function CheckInputParams()
 			'"build_pos" - enter number from 1 to 99',
 			'"build_pos" - not allowed value: ' .. build_pos
 		)
-		return false
+		return true
 	end
+	
+	-- No need to check them
+	-- They will be automaticly tostring() on string concatetantion
+	-- layoutSettings.description
+	-- layoutSettings.display_name
 	
 	local id = TrimSpace(tostring(layoutSettings.id))
 	layoutSettings.id = id
@@ -376,7 +373,7 @@ function CheckInputParams()
 			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
 			'"id" - not allowed value: ' .. id
 		)
-		return false
+		return true
 	end
 	
 	local radius = tonumber(layoutSettings.radius)
@@ -387,36 +384,37 @@ function CheckInputParams()
 			'"radius" - enter positive number [to infinity and beyond]',
 			'"radius" - not allowed value: ' .. radius
 		)
-		return false
+		return true
 	end
 	
-	return true
+	return false
 end
 
-LayoutCapture = function()
-	-- Capture objects
-	buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
-	local supply    = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
-	cables = GetObjsByEntity(supply, "Cable")
-	pipes  = GetObjsByEntity(supply, "Tube")
+function CaptureObjects()
+print(layoutSettings.radius)
+	buildings        = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
+	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
+	cables = GetObjsByEntity(supplyGrid, "Cable")
+	pipes  = GetObjsByEntity(supplyGrid, "Tube")
 
-	numCapturedObjects = #buildings + #cables + #pipes
-	
-	-- Is table empty
+	local numCapturedObjects = #buildings + #cables + #pipes
+	print("Captured Objects: " .. numCapturedObjects)
+end
+
+-- Is all object's tables empty
+function IsAllObjectsTablesEmpty()
 	-- "==" has higher priority than "and"
 	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
-		-- TODO Show notification(Nothing captured)
-		print("Nothing captured")
-		return
+		return true
 	end
-	
-	-- After this all params in layoutSettings are correct
-	if (not CheckInputParams()) then
-		return
-	end
-	
-	-- Files prepare
+	return false
+end
+
+function SetAllFileNames()
+	-- metadata.lua
 	metadataFileName = CurrentModPath .. "metadata.lua"
+	
+	-- Layout/layout.lua
 	local build_pos = layoutSettings.build_pos
 	if (build_pos < 10) then
 		-- Make "build_pos" with two digit
@@ -428,21 +426,48 @@ LayoutCapture = function()
 	layoutFileNameNoPath = "" .. origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
 	-- Concatenate path and name
 	layoutFileName = layoutFilePath ..layoutFileNameNoPath
-		
+	
+	-- Do not overwrite existing lua files
 	if (DEBUG) then
 		local dbgExt = ".txt"
 		layoutFileName = layoutFileName .. dbgExt
 		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
 		metadataFileName = metadataFileName .. dbgExt
 	end
+end
+
+function FileExist(fileName)
+	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
+		return false
+	else
+		return true
+	end
+end
+
+LayoutCapture = function()
+	-- After this all params in layoutSettings are correct
+	if (CheckInputParams()) then
+		return
+	end
 	
-	local fileExist = FileExist(layoutFileName)
+	CaptureObjects()
+	if (IsAllObjectsTablesEmpty()) then
+		-- TODO Show notification(Nothing captured)
+		print("Nothing captured")
+		return
+	end
 	
-	print("FileName: " .. layoutFileNameNoPath)
-	-- Can't cocatenate boolean variable
-	print("FileExist: " .. tostring(fileExist))
+	SetAllFileNames()
+	local layoutFileExist = FileExist(layoutFileName)
 	
-	if (fileExist) then
+	-- TODO not needed?
+	if (DEBUG) then
+		print("LayoutFileName: " .. layoutFileNameNoPath)
+		-- Can't concatenate boolean variable
+		print("LayoutFileExist: " .. tostring(layoutFileExist))
+	end
+	
+	if (layoutFileExist) then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
 		ChoGGi.ComFuncs.QuestionBox(
 			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
@@ -467,7 +492,6 @@ WriteToFiles = function()
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
 	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
 	-- TODO 
-	print("Captured Objects: " .. numCapturedObjects)
 	print("Layout Saved: " .. layoutFileNameNoPath)
 end
 
