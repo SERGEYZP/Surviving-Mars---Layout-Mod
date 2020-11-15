@@ -124,6 +124,39 @@ end
 
 
 
+---- DEBUG ----
+
+-- DEBUG
+-- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
+-- local DEBUG = false
+local DEBUG = true
+
+-- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
+-- ECM/Lib must be enabled before all others mod
+ChoGGi_ReloadLua = function()
+    if not ModsLoaded then
+        return
+    end
+    -- get list of enabled mods
+    local enabled = table.icopy(ModsLoaded)
+    -- turn off all mods
+    AllModsOff()
+    -- re-enable ecm/lib
+    TurnModOn(ChoGGi.id)     -- Expanded Cheat Menu
+    TurnModOn(ChoGGi.id_lib) -- Library
+    -- reload lua code
+    ModsReloadItems()
+    -- enable disabled mods
+    for i = 1, #enabled do
+        TurnModOn(enabled[i].id)
+    end
+    -- reload lua code
+    ModsReloadItems()
+end
+
+
+
+
 ---- CREATE SHORCUTS
 
 local ShortcutCapture   = "Ctrl-Insert"
@@ -136,37 +169,34 @@ local LayoutCapture, LayoutSetParams
 function OnMsg.ModsReloaded()
 	local Actions = ChoGGi.Temp.Actions
 	
-	Actions[#Actions + 1] = {ActionName = "Layout Capture",
+	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
+	-- OnAction = FuncName (for example "cls": clear log)
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Capture",
 		ActionId = "Layout.Capture",
 		OnAction = LayoutCapture,
 		ActionShortcut = ShortcutCapture,
 		ActionBindable = true,
 	}
 	
-	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Set Params",
 		ActionId = "Layout.Set.Params",
 		OnAction = LayoutSetParams,
 		ActionShortcut = ShortcutSetParams,
 		ActionBindable = true,
 	}
 	
-	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
-		ActionId = "Layout.Clear.Log",
-		OnAction = cls,
-		ActionShortcut = "Alt-Insert",
-		ActionBindable = true,
-	}
+	if (DEBUG) then
+		Actions[#Actions + 1] = {
+			ActionName = "Layout Reload Lua",
+			ActionId = "Layout.Reload.Lua",
+			OnAction = cls,
+			ActionShortcut = "LWin-Insert",
+			ActionBindable = true,
+		}
+	end
 end
-
-
-
-
----- DEBUG ----
-
--- DEBUG
--- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
--- local DEBUG = false
-local DEBUG = true
 
 
 
@@ -182,13 +212,17 @@ local numCapturedObjects = 0
 
 local metadataFileName, layoutFilePath, layoutFileNameNoPath, layoutFileName
 
+local default_build_category = #origMenuId
+local default_build_pos = 0
+local default_radius = 10000
+
 local layoutSettings = {
 	id = "SetIdForLayoutFile",
 	display_name = "Display Name",
 	description = "Layout Desctiption",
-	build_category = 15,
-	build_pos = 0,
-	radius = nil,
+	build_category = default_build_category,
+	build_pos = default_build_pos,
+	radius = default_radius,
 }
 
 -- Forward declaration with this func not work.
@@ -223,7 +257,7 @@ SET PARAMS:
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
-		"radius" (nil or positive number) capture radius, multiply measured value in meters by 100.
+		"radius" (nil or positive number [to infinity and beyond]) capture radius, multiply measured value in meters by 100.
 		[others] - as you like.
 	Close all windows.
 CAPTURE:
@@ -245,6 +279,7 @@ WHAT TO DO:
 function ReturnAllNearby(radius, sort, pt, class)
 	-- local is faster then global
 	local table_sort = table.sort
+	-- TODO tune 'radius' value
 	radius = radius or 5000
 	pt = pt or GetTerrainCursor()
 
@@ -308,6 +343,56 @@ function FileExist(fileName)
 	end
 end
 
+-- Return "true" - params OK, "false" - params WRONG
+function CheckInputParams()
+	local build_category = tonumber(layoutSettings.build_category)
+	layoutSettings.build_category = build_category
+	if (build_category < 1 or build_category > #origMenuId) then
+		-- Restore default value
+		layoutSettings.build_category = default_build_category
+		CancelDialogBox(
+			'"build_category" - enter number from 1 to 15',
+			'"build_category" - not allowed value: ' .. build_category
+		)
+		return false
+	end
+	
+	local build_pos = tonumber(layoutSettings.build_pos)
+	layoutSettings.build_pos = build_pos
+	if (build_pos < 0 or build_pos > 99) then
+		layoutSettings.build_pos = default_build_pos
+		CancelDialogBox(
+			'"build_pos" - enter number from 1 to 99',
+			'"build_pos" - not allowed value: ' .. build_pos
+		)
+		return false
+	end
+	
+	local id = TrimSpace(tostring(layoutSettings.id))
+	layoutSettings.id = id
+	if (string.find(id, " ") or string.find(id, "\t")) then
+		-- Do not resotre default value, user can edit yourself
+		CancelDialogBox(
+			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
+			'"id" - not allowed value: ' .. id
+		)
+		return false
+	end
+	
+	local radius = tonumber(layoutSettings.radius)
+	layoutSettings.radius = radius
+	if (radius < 1) then
+	layoutSettings.radius = default_radius
+		CancelDialogBox(
+			'"radius" - enter positive number [to infinity and beyond]',
+			'"radius" - not allowed value: ' .. radius
+		)
+		return false
+	end
+	
+	return true
+end
+
 LayoutCapture = function()
 	-- Capture objects
 	buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
@@ -325,46 +410,22 @@ LayoutCapture = function()
 		return
 	end
 	
-	-- Check params
-	local build_category = tonumber(layoutSettings.build_category)
-	layoutSettings.build_category = build_category
-	if (build_category < 1 or build_category > #origMenuId) then
-		CancelDialogBox(
-			'"build_category" - enter number from 1 to 15',
-			'"build_category" - not allowed value: ' .. build_category
-		)
-		return
-	end
-	
-	local build_pos = tonumber(layoutSettings.build_pos)
-	layoutSettings.build_pos = build_pos
-	if (build_pos < 0 or build_pos > 99) then
-		CancelDialogBox(
-			'"build_pos" - enter number from 1 to 99',
-			'"build_pos" - not allowed value: ' .. build_pos
-		)
-		return
-	end
-	
-	local id = TrimSpace(tostring(layoutSettings.id))
-	layoutSettings.id = id
-	if (string.find(id, " ") or string.find(id, "\t")) then
-		CancelDialogBox(
-			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
-			'"id" - not allowed value: ' .. id
-		)
+	-- After this all params in layoutSettings are correct
+	if (not CheckInputParams()) then
 		return
 	end
 	
 	-- Files prepare
 	metadataFileName = CurrentModPath .. "metadata.lua"
+	local build_pos = layoutSettings.build_pos
 	if (build_pos < 10) then
+		-- Make "build_pos" with two digit
 		build_pos = "0" .. build_pos
 	end
 	-- Path to file
 	layoutFilePath = "" .. CurrentModPath .. "Layout/"
 	-- File name without path
-	layoutFileNameNoPath = "" .. origMenuId[build_category] .. " - " .. build_pos .. " - " .. id .. ".lua"
+	layoutFileNameNoPath = "" .. origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
 	-- Concatenate path and name
 	layoutFileName = layoutFilePath ..layoutFileNameNoPath
 		
