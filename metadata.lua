@@ -27,9 +27,9 @@ return PlaceObj('ModDef', {
 	'lua_revision', 233360,
 	'saved_with_revision', 249143,
 	'code', {
-	-- Main Code --
+		-- Main Code --
 		"Code/Script.lua",
-	-- Captured Layout --
+		-- Captured Layout --
 		"Layout/Layout Infrastructure - 00 - Service_Slice_Simple.lua",
 	},
 	'saved', 1604768099,

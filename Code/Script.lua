@@ -26,7 +26,101 @@
 
 
 
----- BUILD MENUS ----
+---- DEBUG ----
+
+-- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
+local DEBUG = true
+-- local DEBUG_EXAMINE = true
+-- local DEBUG_LUA = true
+
+function printD(str)
+	if (DEBUG) then
+		print(str)
+	end
+end
+
+-- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
+-- ECM/Lib must be enabled before all others mod
+function ChoGGi_ReloadLua()
+    if not ModsLoaded then
+        return
+    end
+    -- get list of enabled mods
+    local enabled = table.icopy(ModsLoaded)
+    -- turn off all mods
+    AllModsOff()
+    -- re-enable ecm/lib
+    TurnModOn(ChoGGi.id)     -- Expanded Cheat Menu
+    TurnModOn(ChoGGi.id_lib) -- Library
+    -- reload lua code
+    ModsReloadItems()
+    -- enable disabled mods
+    for i = 1, #enabled do
+        TurnModOn(enabled[i].id)
+    end
+    -- reload lua code
+    ModsReloadItems()
+end
+
+-- ReloadLua() is in-game function name, don't use it!!!
+function Fixer_ReloadLua()
+	CreateRealTimeThread(function()
+		printD("----BEGIN-RELOAD-LUA----")
+		Sleep(1000)
+		ChoGGi_ReloadLua()
+		printD("----DONE-RELOAD-LUA----")
+	end)
+end
+
+
+
+
+---- SHORTCUTS ----
+
+local ShortcutCapture   =  "Ctrl-Insert"
+local ShortcutSetParams = "Shift-Insert"
+local ShortcutReloadLua =  "Insert"
+
+-- Function forward declaration
+local LayoutCapture, LayoutSetParams
+
+-- After this message ChoGGi's object is ready to use
+function CreateShortcuts()
+	printD("msg_ModsReloaded")
+	local Actions = ChoGGi.Temp.Actions
+	
+	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
+	-- OnAction = FuncName (for example "cls": clear log)
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Capture",
+		ActionId = "Layout.Capture",
+		OnAction = LayoutCapture,
+		ActionShortcut = ShortcutCapture,
+		ActionBindable = true,
+	}
+	
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Set Params",
+		ActionId = "Layout.Set.Params",
+		OnAction = LayoutSetParams,
+		ActionShortcut = ShortcutSetParams,
+		ActionBindable = true,
+	}
+	
+	if (DEBUG) then
+		Actions[#Actions + 1] = {
+			ActionName = "Layout Reload Lua",
+			ActionId = "Layout.Reload.Lua",
+			OnAction = Fixer_ReloadLua,
+			ActionShortcut = ShortcutReloadLua,
+			ActionBindable = true,
+		}
+	end
+end
+
+
+
+---- MENUS ----
 
 -- Ingame table with root menus, which appears on hotkey [B]:
 -- Enhanced Cheat Menu -> Console -> ~BuildCategories
@@ -65,8 +159,7 @@ local origMenuId = {
 -- Table with id for my menus
 local menuId = {}
 
--- Use this message to perform post-built actions on the final classes
-function OnMsg.ClassesBuilt()
+function CreateMenus()
 	-- Create id for my submenus
 	for i, id in ipairs(origMenuId) do
 		menuId[i] = idPrefix .. id
@@ -88,11 +181,14 @@ function OnMsg.ClassesBuilt()
 			-- highlight = "UI/Icons/Buildings/dinner_shine.tga",
 			-- highlight or highlight_img param? From different sources, not shure.
 		}
+		printD("Menu created: " .. id)
+	else
+		printD("Skip menu creation: " .. id)
 	end
 	
 	-- Create submenu in each original menu
+	local bmc = BuildMenuSubcategories
 	for i, id in ipairs(menuId) do
-		local bmc = BuildMenuSubcategories
 		if not table.find(bmc, "id", id) then
 			bmc[id] = PlaceObj('BuildMenuSubcategory', {
 				id = id,
@@ -117,85 +213,10 @@ function OnMsg.ClassesBuilt()
 					-- print("You Selected Subcategory")
 				-- end,
 			})
+			printD("Menu created: " .. id)
+		else
+			printD("Skip menu creation: " .. id)
 		end
-	end
-end
-
-
-
-
----- DEBUG ----
-
--- DEBUG
--- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
--- local DEBUG = false
-local DEBUG = true
-
--- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
--- ECM/Lib must be enabled before all others mod
-ChoGGi_ReloadLua = function()
-    if not ModsLoaded then
-        return
-    end
-    -- get list of enabled mods
-    local enabled = table.icopy(ModsLoaded)
-    -- turn off all mods
-    AllModsOff()
-    -- re-enable ecm/lib
-    TurnModOn(ChoGGi.id)     -- Expanded Cheat Menu
-    TurnModOn(ChoGGi.id_lib) -- Library
-    -- reload lua code
-    ModsReloadItems()
-    -- enable disabled mods
-    for i = 1, #enabled do
-        TurnModOn(enabled[i].id)
-    end
-    -- reload lua code
-    ModsReloadItems()
-end
-
-
-
-
----- CREATE SHORCUTS
-
-local ShortcutCapture   =  "Ctrl-Insert"
-local ShortcutSetParams = "Shift-Insert"
-local ShortcutReloadLua =  "LWin-Insert"
-
--- Function forward declaration
-local LayoutCapture, LayoutSetParams
-
--- After this message ChoGGi's object is ready to use
-function OnMsg.ModsReloaded()
-	local Actions = ChoGGi.Temp.Actions
-	
-	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
-	-- OnAction = FuncName (for example "cls": clear log)
-	Actions[#Actions + 1] = {
-		ActionName = "Layout Capture",
-		ActionId = "Layout.Capture",
-		OnAction = LayoutCapture,
-		ActionShortcut = ShortcutCapture,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {
-		ActionName = "Layout Set Params",
-		ActionId = "Layout.Set.Params",
-		OnAction = LayoutSetParams,
-		ActionShortcut = ShortcutSetParams,
-		ActionBindable = true,
-	}
-	
-	if (DEBUG) then
-		Actions[#Actions + 1] = {
-			ActionName = "Layout Reload Lua",
-			ActionId = "Layout.Reload.Lua",
-			OnAction = cls,
-			ActionShortcut = ShortcutReloadLua,
-			ActionBindable = true,
-		}
 	end
 end
 
@@ -268,10 +289,6 @@ APPLY:
 WHAT TO DO:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
 "build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId)
-
-
--- function OnMsg.ClassesPostprocess()
--- end
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
 -- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
@@ -391,14 +408,13 @@ function CheckInputParams()
 end
 
 function CaptureObjects()
-print(layoutSettings.radius)
 	buildings        = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
 	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
 	cables = GetObjsByEntity(supplyGrid, "Cable")
 	pipes  = GetObjsByEntity(supplyGrid, "Tube")
 
 	local numCapturedObjects = #buildings + #cables + #pipes
-	print("Captured Objects: " .. numCapturedObjects)
+	print("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #pipes=" .. #pipes)
 end
 
 -- Is all object's tables empty
@@ -428,7 +444,7 @@ function SetAllFileNames()
 	layoutFileName = layoutFilePath ..layoutFileNameNoPath
 	
 	-- Do not overwrite existing lua files
-	if (DEBUG) then
+	if (DEBUG_LUA) then
 		local dbgExt = ".txt"
 		layoutFileName = layoutFileName .. dbgExt
 		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
@@ -486,13 +502,27 @@ LayoutCapture = function()
 	end
 end
 
+function ShowMsgOrErr(err, sucess, fail)
+	if (err) then
+		-- TODO
+		print(fail .. tostring(err))
+	else
+		print(sucess)
+	end
+end
+
 WriteToFiles = function()
 	-- string err AsyncStringToFile(...) - by default overwrites file
 	-- "items.lua" not needed. Empty is OK. It used in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
-	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
-	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
-	-- TODO 
-	print("Layout Saved: " .. layoutFileNameNoPath)
+	-- TODO local err = AsyncStringToFile(...) check if err has chars, it has only "\n"
+	ShowMsgOrErr(
+		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
+		"Layout Saved: " .. layoutFileNameNoPath,
+		"Layout Error Saving:\n")
+	ShowMsgOrErr(
+		AsyncStringToFile(metadataFileName, BuildMetadataLua()),
+		"metadata.lua Updated",
+		"metadata.lua Update Failed:\n")
 end
 
 LayoutSetParams = function()
@@ -540,9 +570,9 @@ return PlaceObj('ModDef', {
 	'lua_revision', 233360,
 	'saved_with_revision', 249143,
 	'code', {
-	-- Main Code --
+		-- Main Code --
 		"Code/Script.lua",
-	-- Captured Layout --
+		-- Captured Layout --
 ]] .. strLayoutFiles .. [[
 	},
 	'saved', 1604768099,
@@ -601,7 +631,7 @@ BuildLayoutBodyLua = function()
 		if (not base_q or not base_r) then
 			local baseObj = buildings[1]
 			base_q, base_r = WorldToHex(baseObj)
-			if (DEBUG) then
+			if (DEBUG_EXAMINE) then
 				OpenExamine(baseObj)
 			end
 		end
@@ -675,4 +705,33 @@ end
 
 BuildLayoutLua = function()
 	return BuildLayoutHeadLua() .. BuildLayoutBodyLua() .. BuildLayoutTailLua()
+end
+
+
+
+
+---- OnMsg ----
+
+-- Use this message to perform post-built actions on the final classes
+function OnMsg.ClassesBuilt()
+	printD("msg_ClassesBuilt")
+	CreateMenus()
+end
+
+-- New_Game + Load_Save
+function OnMsg.ModsReloaded()
+	printD("msg_ModsReloaded")
+	CreateShortcuts()
+end
+
+-- Load_Save
+function OnMsg.LoadGame()
+	printD("msg_LoadGame")
+	-- CreateMenus()
+end
+
+-- New_Game
+function OnMsg.CityStart()
+	printD("CityStart")
+	-- CreateMenus()
 end
