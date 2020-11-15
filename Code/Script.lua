@@ -23,6 +23,9 @@
 	-- and
 	-- or
 
+
+
+
 ---- BUILD MENUS ----
 
 -- Ingame table with root menus, which appears on hotkey [B]:
@@ -73,11 +76,17 @@ function OnMsg.ClassesBuilt()
 	local bc = BuildCategories
 	local id = menuId[#menuId] -- #var - get size of table "var"
 	if not table.find(bc, "id", id) then
+		-- TODO change to proper way? ... PlaceObj('BuildMenuSubcategory', ... )
 		bc[#bc + 1] = {
 			id = id,
 			name = displayName,
 			image = CurrentModPath .. menuIcon,
-			-- highlight = "UI/Icons/Buildings/dinner_shine.tga", TODO not needed?
+			-- “on hover” effects; this should probably always be "UI/Icons/bmc_infrastructure_shine.tga" to have the default “on hover” effect
+			-- TODO
+			-- highlight = "UI/Icons/bmc_infrastructure_shine.tga",
+			-- highlight = "UI/Icons/bmc_dome_buildings_shine.tga",
+			-- highlight = "UI/Icons/Buildings/dinner_shine.tga",
+			-- highlight or highlight_img param? From different sources, not shure.
 		}
 	end
 	
@@ -102,10 +111,11 @@ function OnMsg.ClassesBuilt()
 				-- This is useful in cases like the “Depots” and “Storage” subcategory.
 				-- It is far simpler to use the “cycle visual variant” keys, instead of
 				-- going through the build menu, when placing multiple depots for different resources.
-				-- allow_template_variants = true -- by default it's true
+				-- By default it's true.
+				-- allow_template_variants = true,
 				-- action = function(self, context, button)
 					-- print("You Selected Subcategory")
-				-- end
+				-- end,
 			})
 		end
 	end
@@ -114,32 +124,105 @@ end
 
 
 
----- MAIN CODE ----
+---- DEBUG ----
 
 -- DEBUG
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
 -- local DEBUG = false
 local DEBUG = true
 
-local ShortcutCapture   = "Ctrl-Insert"
+-- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
+-- ECM/Lib must be enabled before all others mod
+ChoGGi_ReloadLua = function()
+    if not ModsLoaded then
+        return
+    end
+    -- get list of enabled mods
+    local enabled = table.icopy(ModsLoaded)
+    -- turn off all mods
+    AllModsOff()
+    -- re-enable ecm/lib
+    TurnModOn(ChoGGi.id)     -- Expanded Cheat Menu
+    TurnModOn(ChoGGi.id_lib) -- Library
+    -- reload lua code
+    ModsReloadItems()
+    -- enable disabled mods
+    for i = 1, #enabled do
+        TurnModOn(enabled[i].id)
+    end
+    -- reload lua code
+    ModsReloadItems()
+end
+
+
+
+
+---- CREATE SHORCUTS
+
+local ShortcutCapture   =  "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
+local ShortcutReloadLua =  "LWin-Insert"
+
+-- Function forward declaration
+local LayoutCapture, LayoutSetParams
+
+-- After this message ChoGGi's object is ready to use
+function OnMsg.ModsReloaded()
+	local Actions = ChoGGi.Temp.Actions
+	
+	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
+	-- OnAction = FuncName (for example "cls": clear log)
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Capture",
+		ActionId = "Layout.Capture",
+		OnAction = LayoutCapture,
+		ActionShortcut = ShortcutCapture,
+		ActionBindable = true,
+	}
+	
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Set Params",
+		ActionId = "Layout.Set.Params",
+		OnAction = LayoutSetParams,
+		ActionShortcut = ShortcutSetParams,
+		ActionBindable = true,
+	}
+	
+	if (DEBUG) then
+		Actions[#Actions + 1] = {
+			ActionName = "Layout Reload Lua",
+			ActionId = "Layout.Reload.Lua",
+			OnAction = cls,
+			ActionShortcut = ShortcutReloadLua,
+			ActionBindable = true,
+		}
+	end
+end
+
+
+
+
+---- MAIN CODE ----
 
 -- Function forward declaration
 local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua
 local WriteToFiles
 
 local buildings, cables, pipes
-local numCapturedObjects = 0
 
 local metadataFileName, layoutFilePath, layoutFileNameNoPath, layoutFileName
 
+local default_build_category = #origMenuId
+local default_build_pos = 0
+local default_radius = 10000
+
 local layoutSettings = {
-	id = "SetIdForLayoutFile",
-	display_name = "Display Name",
+	build_category = default_build_category,
+	build_pos = default_build_pos,
 	description = "Layout Desctiption",
-	build_category = 15,
-	build_pos = 0,
-	radius = nil,
+	display_name = "Display Name",
+	id = "SetIdForLayoutFile",
+	radius = default_radius,
 }
 
 -- Forward declaration with this func not work.
@@ -171,11 +254,11 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
 	Set parameters in "Edit Object" window:
-		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
-		"radius" (nil or positive number) capture radius, multiply measured value in meters by 100.
-		[others] - as you like.
+		"description", "display_name" - as you like.
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
+		"radius" (nil or positive number [to infinity and beyond]) capture radius, multiply measured value in meters by 100.
 	Close all windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. ']\n' .. [[
@@ -196,6 +279,7 @@ WHAT TO DO:
 function ReturnAllNearby(radius, sort, pt, class)
 	-- local is faster then global
 	local table_sort = table.sort
+	-- TODO tune 'radius' value
 	radius = radius or 5000
 	pt = pt or GetTerrainCursor()
 
@@ -251,6 +335,107 @@ function TrimSpace(str)
 	return (str:gsub("^%s*(.-)%s*$", "%1"))
 end
 
+-- Return "false" - params OK, "true" - params WRONG
+function CheckInputParams()
+	local build_category = tonumber(layoutSettings.build_category)
+	layoutSettings.build_category = build_category
+	if (build_category < 1 or build_category > #origMenuId) then
+		-- Restore default value
+		layoutSettings.build_category = default_build_category
+		CancelDialogBox(
+			'"build_category" - enter number from 1 to 15',
+			'"build_category" - not allowed value: ' .. build_category
+		)
+		return true
+	end
+	
+	local build_pos = tonumber(layoutSettings.build_pos)
+	layoutSettings.build_pos = build_pos
+	if (build_pos < 0 or build_pos > 99) then
+		layoutSettings.build_pos = default_build_pos
+		CancelDialogBox(
+			'"build_pos" - enter number from 1 to 99',
+			'"build_pos" - not allowed value: ' .. build_pos
+		)
+		return true
+	end
+	
+	-- No need to check them
+	-- They will be automaticly tostring() on string concatetantion
+	-- layoutSettings.description
+	-- layoutSettings.display_name
+	
+	local id = TrimSpace(tostring(layoutSettings.id))
+	layoutSettings.id = id
+	if (string.find(id, " ") or string.find(id, "\t")) then
+		-- Do not resotre default value, user can edit yourself
+		CancelDialogBox(
+			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
+			'"id" - not allowed value: ' .. id
+		)
+		return true
+	end
+	
+	local radius = tonumber(layoutSettings.radius)
+	layoutSettings.radius = radius
+	if (radius < 1) then
+	layoutSettings.radius = default_radius
+		CancelDialogBox(
+			'"radius" - enter positive number [to infinity and beyond]',
+			'"radius" - not allowed value: ' .. radius
+		)
+		return true
+	end
+	
+	return false
+end
+
+function CaptureObjects()
+print(layoutSettings.radius)
+	buildings        = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
+	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
+	cables = GetObjsByEntity(supplyGrid, "Cable")
+	pipes  = GetObjsByEntity(supplyGrid, "Tube")
+
+	local numCapturedObjects = #buildings + #cables + #pipes
+	print("Captured Objects: " .. numCapturedObjects)
+end
+
+-- Is all object's tables empty
+function IsAllObjectsTablesEmpty()
+	-- "==" has higher priority than "and"
+	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
+		return true
+	end
+	return false
+end
+
+function SetAllFileNames()
+	-- metadata.lua
+	metadataFileName = CurrentModPath .. "metadata.lua"
+	
+	-- Layout/layout.lua
+	local build_pos = layoutSettings.build_pos
+	if (build_pos < 10) then
+		-- Make "build_pos" with two digit
+		build_pos = "0" .. build_pos
+	end
+	-- Path to file
+	layoutFilePath = "" .. CurrentModPath .. "Layout/"
+	-- File name without path
+	layoutFileNameNoPath = "" .. origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
+	-- Concatenate path and name
+	layoutFileName = layoutFilePath ..layoutFileNameNoPath
+	
+	-- Do not overwrite existing lua files
+	if (DEBUG) then
+		local dbgExt = ".txt"
+		layoutFileName = layoutFileName .. dbgExt
+		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
+		metadataFileName = metadataFileName .. dbgExt
+	end
+end
+
 function FileExist(fileName)
 	if (AsyncGetFileAttribute(fileName, "size") == "File Not Found") then
 		return false
@@ -259,80 +444,30 @@ function FileExist(fileName)
 	end
 end
 
-function LayoutCapture()
-	-- Capture objects
-	buildings = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
-	local supply    = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
-	cables = GetObjsByEntity(supply, "Cable")
-	pipes  = GetObjsByEntity(supply, "Tube")
-
-	numCapturedObjects = #buildings + #cables + #pipes
+LayoutCapture = function()
+	-- After this all params in layoutSettings are correct
+	if (CheckInputParams()) then
+		return
+	end
 	
-	-- Is table empty
-	-- "==" has higher priority than "and"
-	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
+	CaptureObjects()
+	if (IsAllObjectsTablesEmpty()) then
 		-- TODO Show notification(Nothing captured)
 		print("Nothing captured")
 		return
 	end
 	
-	-- Check params
-	local build_category = tonumber(layoutSettings.build_category)
-	layoutSettings.build_category = build_category
-	if (build_category < 1 or build_category > #origMenuId) then
-		CancelDialogBox(
-			'"build_category" - enter number from 1 to 15',
-			'"build_category" - not allowed value: ' .. build_category
-		)
-		return
-	end
+	SetAllFileNames()
+	local layoutFileExist = FileExist(layoutFileName)
 	
-	local build_pos = tonumber(layoutSettings.build_pos)
-	layoutSettings.build_pos = build_pos
-	if (build_pos < 0 or build_pos > 99) then
-		CancelDialogBox(
-			'"build_pos" - enter number from 1 to 99',
-			'"build_pos" - not allowed value: ' .. build_pos
-		)
-		return
-	end
-	
-	local id = TrimSpace(tostring(layoutSettings.id))
-	layoutSettings.id = id
-	if (string.find(id, " ") or string.find(id, "\t")) then
-		CancelDialogBox(
-			'"id" - must be unique, allowed "CamelCase" or "snake_case" notation',
-			'"id" - not allowed value: ' .. id
-		)
-		return
-	end
-	
-	-- Files prepare
-	metadataFileName = CurrentModPath .. "metadata.lua"
-	if (build_pos < 10) then
-		build_pos = "0" .. build_pos
-	end
-	-- Path to file
-	layoutFilePath = "" .. CurrentModPath .. "Layout/"
-	-- File name without path
-	layoutFileNameNoPath = "" .. origMenuId[build_category] .. " - " .. build_pos .. " - " .. id .. ".lua"
-	-- Concatenate path and name
-	layoutFileName = layoutFilePath ..layoutFileNameNoPath
-		
+	-- TODO not needed?
 	if (DEBUG) then
-		local dbgExt = ".txt"
-		layoutFileName = layoutFileName .. dbgExt
-		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
-		metadataFileName = metadataFileName .. dbgExt
+		print("LayoutFileName: " .. layoutFileNameNoPath)
+		-- Can't concatenate boolean variable
+		print("LayoutFileExist: " .. tostring(layoutFileExist))
 	end
 	
-	local fileExist = FileExist(layoutFileName)
-	
-	print("FileName: " .. layoutFileNameNoPath)
-	-- Can't cocatenate boolean variable
-	print("FileExist: " .. tostring(fileExist))
-	
-	if (fileExist) then
+	if (layoutFileExist) then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
 		ChoGGi.ComFuncs.QuestionBox(
 			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
@@ -357,41 +492,13 @@ WriteToFiles = function()
 	print(AsyncStringToFile(metadataFileName, BuildMetadataLua()))
 	print(AsyncStringToFile(layoutFileName, BuildLayoutLua()))
 	-- TODO 
-	print("Captured Objects: " .. numCapturedObjects)
 	print("Layout Saved: " .. layoutFileNameNoPath)
 end
 
-function LayoutSetParams()
+LayoutSetParams = function()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	OpenExamine(GUIDE)
 	OpenInObjectEditorDlg(layoutSettings)
-end
-
--- Create Shortcuts
--- After this message ChoGGi's object is ready to use
-function OnMsg.ModsReloaded()
-	local Actions = ChoGGi.Temp.Actions
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Capture",
-		ActionId = "Layout.Capture",
-		OnAction = LayoutCapture,
-		ActionShortcut = ShortcutCapture,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Set Params",
-		ActionId = "Layout.Set.Params",
-		OnAction = LayoutSetParams,
-		ActionShortcut = ShortcutSetParams,
-		ActionBindable = true,
-	}
-	
-	Actions[#Actions + 1] = {ActionName = "Layout Clear Log",
-		ActionId = "Layout.Clear.Log",
-		OnAction = cls,
-		ActionShortcut = "Alt-Insert",
-		ActionBindable = true,
-	}
 end
 
 BuildItemsLua = function()
