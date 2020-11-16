@@ -1,3 +1,4 @@
+-- !!!!!!!!!!!!-- TODO -- Add prefix before layout's id
 -- TODO -- Ask ChoGGi to add hotkey to "Close dialogs"
 -- TODO -- ReloadLua() cmd, but it messes up ECM (and it's in the func blacklist)
 
@@ -35,6 +36,8 @@ local DEBUG = true
 
 function printD(str)
 	if (DEBUG) then
+		-- Not work, need sync version
+		-- AsyncStringToFile(CurrentModPath .. "layout_log.txt", str)
 		print(str)
 	end
 end
@@ -86,7 +89,7 @@ local LayoutCapture, LayoutSetParams
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
-	printD("msg_ModsReloaded")
+	printD("CreateShortcuts()")
 	local Actions = ChoGGi.Temp.Actions
 	
 	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
@@ -181,9 +184,9 @@ function CreateMenus()
 			-- highlight = "UI/Icons/Buildings/dinner_shine.tga",
 			-- highlight or highlight_img param? From different sources, not shure.
 		}
-		printD("Menu created: " .. id)
+		printD("CreateMenus() - menu created: " .. id)
 	else
-		printD("Skip menu creation: " .. id)
+		printD("CreateMenus() - skip menu creation: " .. id)
 	end
 	
 	-- Create submenu in each original menu
@@ -213,9 +216,9 @@ function CreateMenus()
 					-- print("You Selected Subcategory")
 				-- end,
 			})
-			printD("Menu created: " .. id)
+			printD("CreateMenus() - menu created: " .. id)
 		else
-			printD("Skip menu creation: " .. id)
+			printD("CreateMenus() - skip menu creation: " .. id)
 		end
 	end
 end
@@ -226,12 +229,12 @@ end
 ---- MAIN CODE ----
 
 -- Function forward declaration
-local BuildItemsLua, BuildMetadataLua, BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua
+local BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua, BuildMetadataLua
 local WriteToFiles
 
 local buildings, cables, pipes
 
-local metadataFileName, layoutFilePath, layoutFileNameNoPath, layoutFileName
+local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName
 
 local default_build_category = #origMenuId
 local default_build_pos = 0
@@ -275,10 +278,11 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
 	Set parameters in "Edit Object" window:
-		"build_category" (allowed number from 1 to 15) in which menu captured layout will be placed. See hint in another window.
+		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
 		"description", "display_name" - as you like.
-		"id" (must be unique, allowed "CamelCase" or "snake_case" notation) internal script parameter, additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
+			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"radius" (nil or positive number [to infinity and beyond]) capture radius, multiply measured value in meters by 100.
 	Close all windows.
 CAPTURE:
@@ -288,7 +292,7 @@ APPLY:
 	Press [Ctrl-Alt-R] then [Enter].
 WHAT TO DO:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
-"build_category" (allowed value is number from 1 to 15):]] .. '\n' .. TableToString(origMenuId)
+"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
 -- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
@@ -347,7 +351,8 @@ end
 -- Trim space http://lua-users.org/wiki/StringTrim
 function TrimSpace(str)
 	-- "%s" - space
-	-- "."  - 'greedy' any character
+	-- "."  - any character
+	-- "-"  - 'lazy' zero or more times
 	-- ".-" - 'lazy' any character
 	return (str:gsub("^%s*(.-)%s*$", "%1"))
 end
@@ -360,7 +365,7 @@ function CheckInputParams()
 		-- Restore default value
 		layoutSettings.build_category = default_build_category
 		CancelDialogBox(
-			'"build_category" - enter number from 1 to 15',
+			'"build_category" - enter number from 1 to ' .. #origMenuId,
 			'"build_category" - not allowed value: ' .. build_category
 		)
 		return true
@@ -407,37 +412,18 @@ function CheckInputParams()
 	return false
 end
 
-function CaptureObjects()
-	buildings        = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
-	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
-	cables = GetObjsByEntity(supplyGrid, "Cable")
-	pipes  = GetObjsByEntity(supplyGrid, "Tube")
-
-	local numCapturedObjects = #buildings + #cables + #pipes
-	print("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #pipes=" .. #pipes)
-end
-
--- Is all object's tables empty
-function IsAllObjectsTablesEmpty()
-	-- "==" has higher priority than "and"
-	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
-		return true
-	end
-	return false
-end
-
 function SetAllFileNames()
 	-- metadata.lua
 	metadataFileName = CurrentModPath .. "metadata.lua"
 	
-	-- Layout/layout.lua
+	-- Code/Layout/layout.lua
 	local build_pos = layoutSettings.build_pos
 	if (build_pos < 10) then
 		-- Make "build_pos" with two digit
 		build_pos = "0" .. build_pos
 	end
 	-- Path to file
-	layoutFilePath = "" .. CurrentModPath .. "Layout/"
+	layoutFilePath = "" .. CurrentModPath .. "Code/Layout/"
 	-- File name without path
 	layoutFileNameNoPath = "" .. origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
 	-- Concatenate path and name
@@ -460,11 +446,33 @@ function FileExist(fileName)
 	end
 end
 
+function CaptureObjects()
+	buildings        = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
+	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
+	cables = GetObjsByEntity(supplyGrid, "Cable")
+	pipes  = GetObjsByEntity(supplyGrid, "Tube")
+
+	local numCapturedObjects = #buildings + #cables + #pipes
+	print("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #pipes=" .. #pipes)
+end
+
+-- Is all object's tables empty
+function IsAllObjectsTablesEmpty()
+	-- "==" has higher priority than "and"
+	if (next(buildings) == nil and next(cables) == nil and next(pipes) == nil) then
+		return true
+	end
+	return false
+end
+
 LayoutCapture = function()
 	-- After this all params in layoutSettings are correct
 	if (CheckInputParams()) then
 		return
 	end
+	
+	SetAllFileNames()
+	local layoutFileExist = FileExist(layoutFileName)
 	
 	CaptureObjects()
 	if (IsAllObjectsTablesEmpty()) then
@@ -472,10 +480,7 @@ LayoutCapture = function()
 		print("Nothing captured")
 		return
 	end
-	
-	SetAllFileNames()
-	local layoutFileExist = FileExist(layoutFileName)
-	
+		
 	-- TODO not needed?
 	if (DEBUG) then
 		print("LayoutFileName: " .. layoutFileNameNoPath)
@@ -486,7 +491,7 @@ LayoutCapture = function()
 	if (layoutFileExist) then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
 		ChoGGi.ComFuncs.QuestionBox(
-			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
+			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Code/Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
 			function(answer)
 				if answer then
 					print("File overwrited")
@@ -505,9 +510,11 @@ end
 function ShowMsgOrErr(err, sucess, fail)
 	if (err) then
 		-- TODO
-		print(fail .. tostring(err))
+		print(fail .. "\n" .. err)
 	else
-		print(sucess)
+		if (sucess) then
+			print(sucess)
+		end
 	end
 end
 
@@ -518,70 +525,17 @@ WriteToFiles = function()
 	ShowMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
 		"Layout Saved: " .. layoutFileNameNoPath,
-		"Layout Error Saving:\n")
+		"Layout Error Saving:")
 	ShowMsgOrErr(
 		AsyncStringToFile(metadataFileName, BuildMetadataLua()),
 		"metadata.lua Updated",
-		"metadata.lua Update Failed:\n")
+		"metadata.lua Update Failed:")
 end
 
 LayoutSetParams = function()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	OpenExamine(GUIDE)
 	OpenInObjectEditorDlg(layoutSettings)
-end
-
-BuildItemsLua = function()
-end
-
-BuildMetadataLua = function()
-	local err, layoutFiles = AsyncListFiles(CurrentModPath .. "Layout", "*.lua", "relative, sorted")
-	local strLayoutFiles = ""
-	for i, strFile in ipairs(layoutFiles) do
-		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Layout/' .. strFile .. '",\n'
-	end
-	local str = [[
-return PlaceObj('ModDef', {
-	"dependencies", {
-		PlaceObj("ModDependency", {
-			"id", "ChoGGi_Library",
-			"title", "ChoGGi's Library",
-			"version_major", 8,
-			"version_minor", 7,
-		}),
-		PlaceObj("ModDependency", {
-			"id", "ChoGGi_CheatMenu",
-			"title", "Expanded Cheat Manu",
-			"version_major", 15,
-			"version_minor", 7,
-		}),
-	},
-	'title', "Layout Mod",
-	'description', "Capture and save building's layout.",
-	'image', "ModImage.png",
-	'last_changes', "Initial release.",
-	'id', "Fixer_Layout_Mod",
-	'steam_id', "9876543210",
-	'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
-	'pops_any_uuid', "bbf577bf-dee0-4346-bad5-1037f6a827e7",
-	'author', "Fixer",
-	'version_major', 1,
-	'version', 1,
-	'lua_revision', 233360,
-	'saved_with_revision', 249143,
-	'code', {
-		-- Main Code --
-		"Code/Script.lua",
-		-- Captured Layout --
-]] .. strLayoutFiles .. [[
-	},
-	'saved', 1604768099,
-	-- 'screenshot1', "",
-	'TagTools', true,
-	'TagOther', true,
-})
-]]
-	return str
 end
 
 BuildLayoutHeadLua = function()
@@ -707,21 +661,78 @@ BuildLayoutLua = function()
 	return BuildLayoutHeadLua() .. BuildLayoutBodyLua() .. BuildLayoutTailLua()
 end
 
+-- Return list of files in "Code/Layout" folder
+function GetLayoutListFiles()
+	local err, layoutListFiles = AsyncListFiles(CurrentModPath .. "Code/Layout", "*.lua", "relative, sorted")
+	ShowMsgOrErr(
+		err,
+		nil,
+		"Error AsyncListFiles():")
+	return layoutListFiles
+end
 
-
+BuildMetadataLua = function()
+	local layoutListFiles = GetLayoutListFiles(CurrentModPath .. "Code/Layout", "*.lua", "relative, sorted")
+	local strLayoutFiles = ""
+	for i, strFile in ipairs(layoutListFiles) do
+		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Code/Layout/' .. strFile .. '",\n'
+	end
+	local str = [[
+return PlaceObj('ModDef', {
+	"dependencies", {
+		PlaceObj("ModDependency", {
+			"id", "ChoGGi_Library",
+			"title", "ChoGGi's Library",
+			"version_major", 8,
+			"version_minor", 7,
+		}),
+		PlaceObj("ModDependency", {
+			"id", "ChoGGi_CheatMenu",
+			"title", "Expanded Cheat Manu",
+			"version_major", 15,
+			"version_minor", 7,
+		}),
+	},
+	'title', "Layout Mod",
+	'description', "Capture and save building's layout.",
+	'image', "ModImage.png",
+	'last_changes', "Initial release.",
+	'id', "Fixer_Layout_Mod",
+	'steam_id', "9876543210",
+	'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
+	'pops_any_uuid', "bbf577bf-dee0-4346-bad5-1037f6a827e7",
+	'author', "Fixer",
+	'version_major', 1,
+	'version', 1,
+	'lua_revision', 233360,
+	'saved_with_revision', 249143,
+	'code', {
+		-- Main Code --
+		"Code/Script.lua",
+		-- Captured Layout --
+]] .. strLayoutFiles .. [[
+	},
+	'saved', 1604768099,
+	-- 'screenshot1', "",
+	'TagTools', true,
+	'TagOther', true,
+})
+]]
+	return str
+end
 
 ---- OnMsg ----
 
 -- Use this message to perform post-built actions on the final classes
 function OnMsg.ClassesBuilt()
 	printD("msg_ClassesBuilt")
-	CreateMenus()
+	CreateMenus() -- original place
 end
 
 -- New_Game + Load_Save
 function OnMsg.ModsReloaded()
 	printD("msg_ModsReloaded")
-	CreateShortcuts()
+	CreateShortcuts() -- original place
 end
 
 -- Load_Save
