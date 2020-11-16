@@ -466,7 +466,7 @@ function IsIdUnique(layoutFileExist)
 			'"id" - not allowed value: ' .. id
 		)
 		return false
-	elseif (table.find(BuildingTemplates, "id", id)) then
+	elseif (BuildingTemplates[id]) then
 		CancelDialogBox(
 			'"id" - is already used by game, must be unique, change "id" value',
 			'"id" - not allowed value: ' .. id
