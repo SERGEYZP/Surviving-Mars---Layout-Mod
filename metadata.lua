@@ -31,7 +31,10 @@ return PlaceObj('ModDef', {
 		"Code/Script.lua",
 		-- Captured Layout --
 		"Code/Layout/Default - 00 - SetIdForLayoutFile.lua",
+		"Code/Layout/Default - 00 - SetIdForLayoutFile1.lua",
 		"Code/Layout/Infrastructure - 00 - Service_Slice_Simple.lua",
+		"Code/Layout/Infrastructure - 00 - SetIdForLayoutFile2.lua",
+		"Code/Layout/Power - 00 - SetIdForLayoutFile3.lua",
 	},
 	'saved', 1604768099,
 	-- 'screenshot1', "",
