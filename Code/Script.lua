@@ -481,6 +481,7 @@ function IsIdUnique(layoutFileExist)
 			)
 			return false
 		end
+	-- BuildingTemplates[id] check must be last. If it will be sooner, then on ReloadLua() user's layouts will stay in "BuildingTemplates" and this check will return false-positive result.
 	elseif BuildingTemplates[id] then
 		CancelDialogBox(
 			'"id" - is already used by game, must be unique, change "id" value',
@@ -780,14 +781,13 @@ end
 -- Use this message to perform post-built actions on the final classes
 function OnMsg.ClassesBuilt()
 	-- printD("msg_ClassesBuilt")
-	CreateShortcuts()
+	CreateShortcuts() -- in other places not work :(
 	CreateMenus() -- original place
 end
 
 -- -- New_Game + Load_Save
 -- function OnMsg.ModsReloaded()
 	-- -- printD("msg_ModsReloaded")
-	-- -- CreateShortcuts() -- original place
 -- end
 
 -- -- Load_Save
