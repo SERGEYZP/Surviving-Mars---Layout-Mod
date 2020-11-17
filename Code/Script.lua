@@ -343,19 +343,6 @@ function GetObjsByEntity(inputTable, entity)
 	return resultTable
 end
 
--- Custom dialog window, show only text, no action
--- TODO ChoGGi can we use simpler DialogBox?
-function CancelDialogBox(text, title)
-	-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
-	ChoGGi.ComFuncs.QuestionBox(
-		text,
-		nil,
-		title,
-		"Cancel Layout Capture",
-		"Cancel Layout Capture"
-	)
-end
-
 -- Trim space http://lua-users.org/wiki/StringTrim
 function TrimSpace(str)
 	-- "%s" - space
@@ -367,12 +354,13 @@ end
 
 -- Return "false" - params OK, "true" - params WRONG
 function CheckInputParams()
+	local MsgWait = ChoGGi.ComFuncs.MsgWait
 	local build_category = tonumber(layoutSettings.build_category)
 	layoutSettings.build_category = build_category
 	if build_category < 1 or build_category > #origMenuId then
 		-- Restore default value
 		layoutSettings.build_category = default_build_category
-		CancelDialogBox(
+		MsgWait(
 			'"build_category" - enter number from 1 to ' .. #origMenuId,
 			'"build_category" - not allowed value: ' .. build_category
 		)
@@ -383,7 +371,7 @@ function CheckInputParams()
 	layoutSettings.build_pos = build_pos
 	if build_pos < 0 or build_pos > 99 then
 		layoutSettings.build_pos = default_build_pos
-		CancelDialogBox(
+		MsgWait(
 			'"build_pos" - enter number from 1 to 99',
 			'"build_pos" - not allowed value: ' .. build_pos
 		)
@@ -399,7 +387,7 @@ function CheckInputParams()
 	layoutSettings.id = id
 	if string.find(id, " ") or string.find(id, "\t") then
 		-- Do not resotre default value, user can edit yourself
-		CancelDialogBox(
+		MsgWait(
 			'"id" - space or tab not allowed, allowed "CamelCase" or "snake_case" notation',
 			'"id" - not allowed value: ' .. id
 		)
@@ -410,7 +398,7 @@ function CheckInputParams()
 	layoutSettings.radius = radius
 	if radius < 1 then
 	layoutSettings.radius = default_radius
-		CancelDialogBox(
+		MsgWait(
 			'"radius" - enter positive number [to infinity and beyond]',
 			'"radius" - not allowed value: ' .. radius
 		)
@@ -477,7 +465,7 @@ function IsIdUnique(layoutFileExist)
 		if layoutFileExist then
 			return true
 		else
-			CancelDialogBox(
+			MsgWait(
 				'"id" - is already used by one of your layouts, must be unique, change "id" value',
 				'"id" - not allowed value: ' .. id
 			)
@@ -485,7 +473,7 @@ function IsIdUnique(layoutFileExist)
 		end
 	-- BuildingTemplates[id] check must be last. If it will be sooner, then on ReloadLua() user's layouts will stay in "BuildingTemplates" and this check will return false-positive result.
 	elseif BuildingTemplates[id] then
-		CancelDialogBox(
+		MsgWait(
 			'"id" - is already used by game, must be unique, change "id" value',
 			'"id" - not allowed value: ' .. id
 		)
@@ -516,6 +504,8 @@ end
 
 LayoutCapture = function()
 	printD("----------------------------")
+	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
+
 	-- After this all params in layoutSettings are correct
 	if CheckInputParams() then
 		return
@@ -540,7 +530,7 @@ LayoutCapture = function()
 	
 	if layoutFileExist then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
-		ChoGGi.ComFuncs.QuestionBox(
+		QuestionBox(
 			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Code/Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
 			function(answer)
 				if answer then
