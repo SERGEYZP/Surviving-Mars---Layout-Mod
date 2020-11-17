@@ -429,9 +429,9 @@ function SetAllFileNames()
 		build_pos = "0" .. build_pos
 	end
 	-- Path to file
-	layoutFilePath = "" .. CurrentModPath .. "Code/Layout/"
+	layoutFilePath = CurrentModPath .. "Code/Layout/"
 	-- File name without path
-	layoutFileNameNoPath = "" .. origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
+	layoutFileNameNoPath = origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
 	-- Concatenate path and name
 	layoutFileName = layoutFilePath ..layoutFileNameNoPath
 	
