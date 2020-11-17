@@ -240,7 +240,7 @@ local GetLayoutListFiles, WriteToFiles
 
 local buildings, cables, pipes
 
-local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName
+local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, menuIconFileName, layoutIconFileName
 
 local default_build_category = #origMenuId
 local default_build_pos = 0
@@ -434,6 +434,10 @@ function SetAllFileNames()
 	layoutFileNameNoPath = origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
 	-- Concatenate path and name
 	layoutFileName = layoutFilePath ..layoutFileNameNoPath
+
+	-- Icons
+	menuIconFileName = CurrentModPath .. menuIcon
+	layoutIconFileName = CurrentModPath .. "UI/Layout/" .. layoutSettings.id .. ".png"
 	
 	-- Do not overwrite existing lua files
 	if DEBUG_LUA then
@@ -572,6 +576,14 @@ WriteToFiles = function()
 		AsyncStringToFile(metadataFileName, BuildMetadataLua()),
 		"metadata.lua Updated",
 		"metadata.lua Update Failed:")
+	if not FileExist(layoutIconFileName) then
+		ShowMsgOrErr(
+			AsyncCopyFile(menuIconFileName, layoutIconFileName),
+			"Icon Copied: " .. layoutSettings.id .. ".png",
+			"Icon Not Copied:")
+	else
+		printD("Icon Not Copied: already exist")
+	end
 end
 
 LayoutSetParams = function()
