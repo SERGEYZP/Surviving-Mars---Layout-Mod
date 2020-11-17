@@ -38,8 +38,8 @@ local DEBUG = true
 
 function printD(str)
 	if DEBUG then
-		-- Not work, need sync version
-		-- AsyncStringToFile(CurrentModPath .. "layout_log.txt", str)
+		-- -1 - append to file
+		AsyncStringToFile(CurrentModPath .. "layout_log.txt", str .. "\n", -1)
 		print(str)
 	end
 end
