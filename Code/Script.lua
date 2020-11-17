@@ -292,7 +292,7 @@ SET PARAMS:
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
 			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"radius" (nil or positive number [to infinity and beyond]) capture radius, multiply measured value in meters by 100.
-	Close all windows.
+	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. ']\n' .. [[
 APPLY:
@@ -589,10 +589,19 @@ WriteToFiles = function()
 	end
 end
 
+local IsDialogWindowOpen = false
+
 LayoutSetParams = function()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
-	OpenExamine(GUIDE)
-	OpenInObjectEditorDlg(layoutSettings)
+	local CloseDialogsECM = ChoGGi.ComFuncs.CloseDialogsECM
+	if IsDialogWindowOpen then
+		IsDialogWindowOpen = false
+		CloseDialogsECM()
+	else
+		IsDialogWindowOpen = true
+		OpenExamine(GUIDE)
+		OpenInObjectEditorDlg(layoutSettings)
+	end
 end
 
 BuildLayoutHeadLua = function()
