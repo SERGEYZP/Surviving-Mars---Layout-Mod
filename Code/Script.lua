@@ -83,7 +83,7 @@ end
 ---- SHORTCUTS ----
 
 local ShortcutCapture   =  "Ctrl-Insert"
-local ShortcutSetParams = "Shift-Insert"
+local ShortcutSetParams =  "Shift-Insert"
 local ShortcutReloadLua =  "Insert"
 
 -- Function forward declaration
