@@ -28,6 +28,8 @@
 
 
 
+local modName = "Layout Mod"
+
 ---- DEBUG ----
 
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
@@ -35,12 +37,31 @@ local DEBUG = true
 -- local DEBUG_EXAMINE = true
 -- local DEBUG_LUA = true
 
+-- Print to "Layout Mod" log file
+function printL(str)
+	-- -1 - append to file
+	AsyncStringToFile(CurrentModPath .. "layout_log.txt", str .. "\n", -1)
+end
+
 function printD(str)
 	if DEBUG then
-		-- -1 - append to file
-		AsyncStringToFile(CurrentModPath .. "layout_log.txt", str .. "\n", -1)
-		print(str)
+		printL(str)
+		print("[LM] " .. str)
 	end
+end
+
+function MsgPopup(text)
+	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
+	-- params = {
+		-- expiration = int, -- how long to show in seconds (default 10)
+		-- size = bool, -- "false" - long text will wrap, "true" - show long text in one line (set default "expiration" to 25)
+		-- image = string, -- icon file name
+		-- objects = obj or {}, -- click icon to view obj
+		-- callback = function,
+		-- max_width = int, -- (default 1000)
+	-- }
+	ChoGGi.ComFuncs.MsgPopup(text, modName, {size = true})
+	printD(text)
 end
 
 -- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
@@ -69,10 +90,10 @@ end
 -- ReloadLua() is in-game function name, don't use it!!!
 function Fixer_ReloadLua()
 	CreateRealTimeThread(function()
-		printD("----BEGIN-RELOAD-LUA----")
+		MsgPopup("----BEGIN-RELOAD-LUA----")
 		Sleep(1000)
 		ChoGGi_ReloadLua()
-		printD("----DONE-RELOAD-LUA----")
+		MsgPopup("----DONE-RELOAD-LUA----")
 	end)
 end
 
@@ -121,6 +142,7 @@ function CreateShortcuts()
 		}
 	end
 end
+
 
 
 
@@ -232,8 +254,6 @@ end
 
 
 ---- MAIN CODE ----
-
-local modName = "Layout Mod"
 
 -- Function forward declaration
 local BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua, BuildMetadataLua
@@ -488,7 +508,7 @@ function CaptureObjects()
 	pipes  = GetObjsByEntity(supplyGrid, "Tube")
 
 	local numCapturedObjects = #buildings + #cables + #pipes
-	printD("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #pipes=" .. #pipes)
+	MsgPopup("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #pipes=" .. #pipes)
 end
 
 -- Is all object's tables empty
@@ -519,8 +539,7 @@ LayoutCapture = function()
 	
 	CaptureObjects()
 	if IsAllObjectsTablesEmpty() then
-		-- TODO Show notification(Nothing captured)
-		printD("Nothing captured")
+		MsgPopup("Nothing captured!")
 		return
 	end
 	
@@ -544,11 +563,12 @@ end
 
 function ShowMsgOrErr(err, sucess, fail)
 	if err then
-		-- TODO
-		print(fail .. "\n" .. err)
+		MsgPopup(fail)
+		-- Print additional error info only in log
+		printL(err)
 	else
 		if sucess then
-			printD(sucess)
+			MsgPopup(sucess)
 		end
 	end
 end
@@ -559,18 +579,19 @@ WriteToFiles = function()
 	ShowMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
 		"Layout Saved: " .. layoutFileNameNoPath,
-		"Layout Error Saving:")
+		"Layout Saving Failed")
 	ShowMsgOrErr(
 		AsyncStringToFile(metadataFileName, BuildMetadataLua()),
 		"metadata.lua Updated",
-		"metadata.lua Update Failed:")
+		"metadata.lua Update Failed")
 	if not FileExist(layoutIconFileName) then
 		ShowMsgOrErr(
 			AsyncCopyFile(menuIconFileName, layoutIconFileName),
 			"Icon Copied: " .. layoutSettings.id .. ".png",
-			"Icon Not Copied:")
+			"Icon Copy Failed")
 	else
-		printD("Icon Not Copied (already exist): ".. layoutSettings.id .. ".png")
+		local str = "Icon Not Copied (already exist): ".. layoutSettings.id .. ".png"
+		MsgPopup(str)
 	end
 end
 
