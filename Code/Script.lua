@@ -570,7 +570,7 @@ WriteToFiles = function()
 			"Icon Copied: " .. layoutSettings.id .. ".png",
 			"Icon Not Copied:")
 	else
-		printD("Icon Not Copied: already exist")
+		printD("Icon Not Copied (already exist): ".. layoutSettings.id .. ".png")
 	end
 end
 
