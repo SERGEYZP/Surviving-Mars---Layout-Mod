@@ -551,6 +551,12 @@ LayoutCapture = function()
 			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Code/Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
 			function(answer)
 				if answer then
+					-- If we reload lua, our old layout object still be present in building's table.
+					-- Layout script by default skip creating object if it already exist in game.
+					-- Delete our layout object from in-game building's table.
+					-- So after reloading lua updated layout become visible.
+					-- TODO add objects on the fly, without reloading lua.
+					BuildingTemplates[layoutSettings.id] = nil
 					WriteToFiles()
 				end
 			end,
