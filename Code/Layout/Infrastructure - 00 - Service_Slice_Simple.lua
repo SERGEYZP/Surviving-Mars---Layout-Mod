@@ -41,6 +41,7 @@ function OnMsg.ClassesPostprocess()
 		group = "Default",
 		id = id,
 
+		-- Buildings
 		-- "template" -> String -> Class Template.
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Tools" -> "Ged Editor".
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Open In Ged Objects Editor".
@@ -91,6 +92,24 @@ function OnMsg.ClassesPostprocess()
 			"template", "Statue",
 			"pos", point(-2,3),
 			"entity", "GardenStatue_01",
-		}),	
+		}),
+
+		-- Cables
+		-- "pos" -> point(x,y) -> Start position
+		-- "cur_pos1" -> point(x,y) -> Next cursor position (build "line" of cables)
+		-- "cur_pos2" -> point(x,y) -> Next cursor position (build second "line", thant continues first)
+		-- PlaceObj("LayoutConstructionEntry", {
+			-- "template", "electricity_grid",
+			-- "pos", point(-1, 3),
+			-- "cur_pos1", point(-1, 0),
+			-- "cur_pos2", point(2, -3),
+		-- }),
+
+		-- Pipes
+		-- PlaceObj("LayoutConstructionEntry", {
+			-- "template", "life_support_grid",
+			-- "pos", point(0, -7),
+			-- "cur_pos1", point(0, -8),
+		-- }),
 	})
 end
