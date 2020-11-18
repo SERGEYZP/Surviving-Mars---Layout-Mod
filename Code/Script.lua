@@ -51,7 +51,7 @@ function printD(str)
 	end
 end
 
-function MsgPopup(text)
+function MsgPopup(str)
 	-- Maximum 2 lines of text
 	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
 	-- params = {
@@ -62,8 +62,8 @@ function MsgPopup(text)
 		-- callback = function,
 		-- max_width = int, -- (default 1000)
 	-- }
-	printD(text)
-	ChoGGi.ComFuncs.MsgPopup(text, modName, {size = true})
+	printD(str)
+	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
 end
 
 -- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
