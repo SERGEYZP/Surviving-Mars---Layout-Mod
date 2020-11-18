@@ -51,6 +51,7 @@ function printD(str)
 end
 
 function MsgPopup(text)
+	-- Maximum 2 lines of text
 	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
 	-- params = {
 		-- expiration = int, -- how long to show in seconds (default 10)
