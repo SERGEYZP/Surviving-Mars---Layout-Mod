@@ -61,8 +61,8 @@ function MsgPopup(text)
 		-- callback = function,
 		-- max_width = int, -- (default 1000)
 	-- }
-	ChoGGi.ComFuncs.MsgPopup(text, modName, {size = true})
 	printD(text)
+	ChoGGi.ComFuncs.MsgPopup(text, modName, {size = true})
 end
 
 -- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
