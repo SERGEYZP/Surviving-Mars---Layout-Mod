@@ -683,26 +683,34 @@ BuildLayoutBodyLua = function()
 		end
 	end
 	
-	-- -- Cables
-	-- if (next(cables) ~= nil) then
-		-- if (not base_q or not base_r) then
-			-- base_q, base_r = WorldToHex(cables[1])
-		-- end
-		-- for i, obj in ipairs(cables) do
-			-- local q, r = WorldToHex(obj)
-			-- q = q - base_q
-			-- r = r - base_r
-			-- str = str .. [[
-			-- PlaceObj("LayoutConstructionEntry", {
-				-- "template", "]] .. obj.template_name .. [[",
-				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
-				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
-				-- "entity", "]] .. obj:GetEntity() .. [[",
-			-- }),]] .. "\n\n"
-		-- end
-	-- end
+	-- Cables 
+	-- Don't have "template_name" parameter, write it explicity
+	-- Brute forse variant
+	if (next(cables) ~= nil) then
+		str = str .. "\t\t-- Cables\n"
+		-- If base point not set before, set it now. If "cables" is empty, get object for base point "pipes"
+		if not base_q or not base_r then
+			local baseObj = cables[1]
+			base_q, base_r = WorldToHex(baseObj)
+			if DEBUG_EXAMINE then
+				OpenExamine(baseObj)
+			end
+		end
+		for i, obj in ipairs(cables) do
+			local q, r = WorldToHex(obj)
+			q = q - base_q
+			r = r - base_r
+			str = str .. [[
+		PlaceObj("LayoutConstructionEntry", {
+			"template", "electricity_grid",
+			"pos", point(]] .. q .. [[, ]] .. r .. [[),
+			"cur_pos1", point(]] .. q .. [[, ]] .. r .. [[),
+		}),]] .. "\n\n"
+		end
+	end
 	
 	-- -- Pipes
+	-- -- Don't have "template_name" parameter
 	-- if (next(pipes) ~= nil) then
 		-- if (not base_q or not base_r) then
 			-- base_q, base_r = WorldToHex(pipes[1])
