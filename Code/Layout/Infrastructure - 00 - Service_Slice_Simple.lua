@@ -58,7 +58,7 @@ function OnMsg.ClassesPostprocess()
 		--		Use keys "R" (counterclockwise) and "T" (clockwise) to rotate when build.
 		--		Count: "dir" is how many times you press "T" key when build.
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4).
-		--		Find: "GetAngle()" and divide it by 3600.
+		--		Find: "GetAngle()" returns angle in minutes, measured clockwise from the x+ axis. Divide it by 3600 = 60degree x 60minutes.
 		-- "entity" -> String -> 3D model of building.
 		--		Use keys "[" and "]" to cycle bitween visual variants when build.
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4).
