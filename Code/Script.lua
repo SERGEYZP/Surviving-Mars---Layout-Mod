@@ -51,7 +51,7 @@ function printD(str)
 	end
 end
 
-function MsgPopup(text)
+function MsgPopup(str)
 	-- Maximum 2 lines of text
 	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
 	-- params = {
@@ -62,8 +62,8 @@ function MsgPopup(text)
 		-- callback = function,
 		-- max_width = int, -- (default 1000)
 	-- }
-	printD(text)
-	ChoGGi.ComFuncs.MsgPopup(text, modName, {size = true})
+	printD(str)
+	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
 end
 
 -- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
@@ -653,26 +653,40 @@ function OnMsg.ClassesPostprocess()
 	return str
 end
 
+-- Get position of "base object". Position offset of all other objects will be calculated relative to it.
+function GetBaseObjectPosition()
+	local baseObj
+	-- ~= is equivalent of !=
+	-- Check if table is not empty
+	if next(buildings) ~= nil then
+		baseObj = buildings[1]
+	elseif next(cables) ~= nil then
+		baseObj = cables[1]
+	elseif next(pipes) ~= nil then
+		baseObj = pipes[1]
+	end
+
+	local q, r = WorldToHex(baseObj)
+	if DEBUG_EXAMINE then
+		OpenExamine(baseObj)
+	end
+	
+	return q, r
+end
+
 BuildLayoutBodyLua = function()
 	-- Official documentation LuaFunctionDoc_hex.md.html
 	local str = ""
 	-- Base point (zero point)
-	local base_q, base_r
+	local base_q, base_r = GetBaseObjectPosition()
 	
 	-- Buildings
 	-- ~= is equivalent of !=
 	if next(buildings) ~= nil then
 		str = str .. "\t\t-- Buildings\n"
-		-- If base point not set before, set it now. If "buildings" is empty, get object for base point from "cables" or "pipes"
-		if not base_q or not base_r then
-			local baseObj = buildings[1]
-			base_q, base_r = WorldToHex(baseObj)
-			if DEBUG_EXAMINE then
-				OpenExamine(baseObj)
-			end
-		end
 		for i, obj in ipairs(buildings) do
 			local q, r = WorldToHex(obj)
+			-- Calculate offset from "base object"
 			q = q - base_q
 			r = r - base_r
 			str = str .. [[
@@ -690,43 +704,41 @@ BuildLayoutBodyLua = function()
 		end
 	end
 	
-	-- -- Cables
-	-- if (next(cables) ~= nil) then
-		-- if (not base_q or not base_r) then
-			-- base_q, base_r = WorldToHex(cables[1])
-		-- end
-		-- for i, obj in ipairs(cables) do
-			-- local q, r = WorldToHex(obj)
-			-- q = q - base_q
-			-- r = r - base_r
-			-- str = str .. [[
-			-- PlaceObj("LayoutConstructionEntry", {
-				-- "template", "]] .. obj.template_name .. [[",
-				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
-				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
-				-- "entity", "]] .. obj:GetEntity() .. [[",
-			-- }),]] .. "\n\n"
-		-- end
-	-- end
+	-- Cables 
+	-- Don't have "template_name" parameter, write it explicity
+	-- Brute forse variant
+	if next(cables) ~= nil then
+		str = str .. "\t\t-- Cables\n"
+		for i, obj in ipairs(cables) do
+			local q, r = WorldToHex(obj)
+			q = q - base_q
+			r = r - base_r
+			str = str .. [[
+		PlaceObj("LayoutConstructionEntry", {
+			"template", "electricity_grid",
+			"pos", point(]] .. q .. [[, ]] .. r .. [[),
+			"cur_pos1", point(]] .. q .. [[, ]] .. r .. [[),
+		}),]] .. "\n\n"
+		end
+	end
 	
-	-- -- Pipes
-	-- if (next(pipes) ~= nil) then
-		-- if (not base_q or not base_r) then
-			-- base_q, base_r = WorldToHex(pipes[1])
-		-- end
-		-- for i, obj in ipairs(pipes) do
-			-- local q, r = WorldToHex(obj)
-			-- q = q - base_q
-			-- r = r - base_r
-			-- str = str .. [[
-			-- PlaceObj("LayoutConstructionEntry", {
-				-- "template", "]] .. obj.template_name .. [[",
-				-- "pos", point(]] .. q .. [[, ]] .. r .. [[),
-				-- "dir", ]] .. HexAngleToDirection(obj) .. [[,
-				-- "entity", "]] .. obj:GetEntity() .. [[",
-			-- }),]] .. "\n\n"
-		-- end
-	-- end
+	-- Pipes
+	-- Don't have "template_name" parameter, write it explicity
+	-- Brute forse variant
+	if next(pipes) ~= nil then
+		str = str .. "\t\t-- Pipes\n"
+		for i, obj in ipairs(pipes) do
+			local q, r = WorldToHex(obj)
+			q = q - base_q
+			r = r - base_r
+			str = str .. [[
+		PlaceObj("LayoutConstructionEntry", {
+			"template", "life_support_grid",
+			"pos", point(]] .. q .. [[, ]] .. r .. [[),
+			"cur_pos1", point(]] .. q .. [[, ]] .. r .. [[),
+		}),]] .. "\n\n"
+		end
+	end
 	
 	return str
 end
