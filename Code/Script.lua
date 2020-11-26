@@ -434,15 +434,10 @@ function SetAllFileNames()
 	metadataFileName = CurrentModPath .. "metadata.lua"
 	
 	-- Code/Layout/layout.lua
-	local build_pos = layoutSettings.build_pos
-	if build_pos < 10 then
-		-- Make "build_pos" with two digit
-		build_pos = "0" .. build_pos
-	end
 	-- Path to file
 	layoutFilePath = CurrentModPath .. "Code/Layout/"
 	-- File name without path
-	layoutFileNameNoPath = origMenuId[layoutSettings.build_category] .. " - " .. build_pos .. " - " .. layoutSettings.id .. ".lua"
+	layoutFileNameNoPath = origMenuId[layoutSettings.build_category] .. " - " .. string.format("%02d", layoutSettings.build_pos) .. " - " .. layoutSettings.id .. ".lua"
 	-- Concatenate path and name
 	layoutFileName = layoutFilePath ..layoutFileNameNoPath
 
