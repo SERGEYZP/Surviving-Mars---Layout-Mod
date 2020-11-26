@@ -513,14 +513,22 @@ function CaptureObjects()
 	MsgPopup("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #pipes=" .. #pipes)
 end
 
--- Is all object's tables empty
-function IsAllObjectsTablesEmpty()
+function TableEmpty(table)
 	-- next(table) == nil -- Is Empty Table Check
-	-- "==" has higher priority than "and"
-	if next(buildings) == nil and next(cables) == nil and next(pipes) == nil then
+	if next(table) == nil then
 		return true
+	else
+		return false
 	end
-	return false
+end
+
+-- Is all object's tables empty
+function AllObjectsTablesEmpty()
+	if TableEmpty(buildings) and TableEmpty(cables) and TableEmpty(pipes) then
+		return true
+	else
+		return false
+	end
 end
 
 LayoutCapture = function()
@@ -540,7 +548,7 @@ LayoutCapture = function()
 	end
 	
 	CaptureObjects()
-	if IsAllObjectsTablesEmpty() then
+	if AllObjectsTablesEmpty() then
 		MsgPopup("Nothing captured!")
 		return
 	end
@@ -658,11 +666,11 @@ function GetBaseObjectPosition()
 	local baseObj
 	-- ~= is equivalent of !=
 	-- Check if table is not empty
-	if next(buildings) ~= nil then
+	if not TableEmpty(buildings) then
 		baseObj = buildings[1]
-	elseif next(cables) ~= nil then
+	elseif not TableEmpty(cables) then
 		baseObj = cables[1]
-	elseif next(pipes) ~= nil then
+	elseif not TableEmpty(pipes) then
 		baseObj = pipes[1]
 	end
 
@@ -682,7 +690,7 @@ BuildLayoutBodyLua = function()
 	
 	-- Buildings
 	-- ~= is equivalent of !=
-	if next(buildings) ~= nil then
+	if not TableEmpty(buildings) then
 		str = str .. "\t\t-- Buildings\n"
 		for i, obj in ipairs(buildings) do
 			local q, r = WorldToHex(obj)
@@ -707,7 +715,7 @@ BuildLayoutBodyLua = function()
 	-- Cables 
 	-- Don't have "template_name" parameter, write it explicity
 	-- Brute forse variant
-	if next(cables) ~= nil then
+	if not TableEmpty(cables) then
 		str = str .. "\t\t-- Cables\n"
 		for i, obj in ipairs(cables) do
 			local q, r = WorldToHex(obj)
@@ -725,7 +733,7 @@ BuildLayoutBodyLua = function()
 	-- Pipes
 	-- Don't have "template_name" parameter, write it explicity
 	-- Brute forse variant
-	if next(pipes) ~= nil then
+	if not TableEmpty(pipes) then
 		str = str .. "\t\t-- Pipes\n"
 		for i, obj in ipairs(pipes) do
 			local q, r = WorldToHex(obj)
