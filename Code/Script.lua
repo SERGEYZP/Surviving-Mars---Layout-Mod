@@ -137,9 +137,7 @@ local ShortcutCapture   = "Ctrl-Insert"
 local ShortcutSetParams = "Shift-Insert"
 local ShortcutShowInfo  = "Alt-Insert"
 local ShortcutReloadLua = "Insert"
-
--- Function forward declaration
-local LayoutCapture, LayoutSetParams
+local ShortcutTerrainTextureChange = "Ctrl-Shift-Insert"
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
@@ -170,6 +168,14 @@ function CreateShortcuts()
 		ActionId = "Layout.Show.Info",
 		OnAction = LayoutShowInfo,
 		ActionShortcut = ShortcutShowInfo,
+		ActionBindable = true,
+	}
+
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Set Green Terrain",
+		ActionId = "Layout.Set.Green.Terrain",
+		OnAction = TerrainTextureChange,
+		ActionShortcut = ShortcutTerrainTextureChange,
 		ActionBindable = true,
 	}
 	
@@ -571,7 +577,7 @@ function AllObjectsTablesEmpty()
 	end
 end
 
-LayoutCapture = function()
+function LayoutCapture()
 	printD(GetDate())
 	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
 
@@ -680,7 +686,7 @@ end
 local IsDialogWindowOpen_Info = false
 local IsDialogWindowOpen_Params = false
 
-LayoutSetParams = function()
+function LayoutSetParams()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	local CloseDialogsECM = ChoGGi.ComFuncs.CloseDialogsECM
 	if IsDialogWindowOpen_Params then
@@ -1180,6 +1186,87 @@ BuildLayoutsLua = function()
 		str = str .. data
 	end
 	return str
+end
+
+-- ChoGGi.MenuFuncs.TerrainTextureChange()
+function TerrainTextureChange()
+	-- Set green color for terrain to make screenshots
+	local choice = {
+		text = "Prefab_Green",
+		value = 27,
+	}
+
+	local function RestoreSkins(label, temp_skin, idx)
+		for i = 1, #(label or "") do
+			local o = label[i]
+			-- If i don't set waste skins to the ground texture then it won't be the right texture for GetCurrentSkin
+			-- got me
+			if temp_skin then
+				o.orig_terrain1 = idx
+				o.orig_terrain2 = nil
+				o:ChangeSkin("Terrain" .. temp_skin)
+			end
+			o:ChangeSkin(o:GetCurrentSkin())
+		end
+	end
+
+	local GridOpFree = GridOpFree
+	local AsyncSetTypeGrid = AsyncSetTypeGrid
+	local MulDivRound = MulDivRound
+	local sqrt = sqrt
+
+	local NoisePreset = DataInstances.NoisePreset
+	local guim = guim
+
+	local TerrainTextures = TerrainTextures
+
+	local function CallBackFunc(choice)
+		if TerrainTextures[choice.value] then
+			SuspendPassEdits("ChoGGi.MenuFuncs.TerrainTextureChange")
+			terrain.SetTerrainType{type = choice.value}
+
+			-- add back dome grass
+			RestoreSkins(UICity.labels.Dome)
+			-- restore waste piles
+			RestoreSkins(UICity.labels.WasteRockDumpSite, choice.text, choice.value)
+
+			-- re-build concrete marker textures
+			local texture_idx1 = table.find(TerrainTextures, "name", "Regolith") + 1
+			local texture_idx2 = table.find(TerrainTextures, "name", "Regolith_02") + 1
+
+			local deposits = UICity.labels.TerrainDeposit or ""
+			for i = 1, #deposits do
+				local d = deposits[i]
+				if IsValid(d) then
+					local pattern = NoisePreset.ConcreteForm:GetNoise(128, Random())
+					pattern:land_i(NoisePreset.ConcreteNoise:GetNoise(128, Random()))
+					-- any over 1000 get the more noticeable texture
+					if d.max_amount > 1000000 then
+						pattern:mul_i(texture_idx2, 1)
+					else
+						pattern:mul_i(texture_idx1, 1)
+					end
+					-- blend in with surrounding ground
+					pattern:sub_i(1, 1)
+					-- ?
+					pattern = GridOpFree(pattern, "repack", 8)
+					-- paint deposit
+					AsyncSetTypeGrid{
+						type_grid = pattern,
+						pos = d:GetPos(),
+						scale = sqrt(MulDivRound(10000, d.max_amount / guim, d.radius_max)),
+						centered = true,
+						invalid_type = -1,
+					}
+				end
+			end -- for
+
+			ResumePassEdits("ChoGGi.MenuFuncs.TerrainTextureChange")
+		end -- If TerrainTextures
+
+	end -- CallBackFunc
+
+	CallBackFunc(choice)
 end
 
 
