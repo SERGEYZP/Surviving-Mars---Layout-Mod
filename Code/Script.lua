@@ -360,10 +360,12 @@ SET PARAMS:
 CAPTURE:
 	Press []] .. ShortcutCapture .. ']\n' .. [[
 APPLY:
-	To take changes in effect restart game.
-	Press [Ctrl-Alt-R] then [Enter].
+	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
+	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
 WHAT TO DO:
+	Press []] .. ShortcutTerrainTextureChange .. [[] and make screenshot.
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
+	Template: "...\Surviving Mars Green Planet\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
@@ -1184,7 +1186,7 @@ function BuildLayoutsLua()
 	return str
 end
 
--- ChoGGi.MenuFuncs.TerrainTextureChange()
+-- Copy-Paste from ChoGGi.MenuFuncs.TerrainTextureChange()
 function TerrainTextureChange()
 	-- Set green color for terrain to make screenshots
 	local choice = {
