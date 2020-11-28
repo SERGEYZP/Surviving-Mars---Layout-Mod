@@ -54,6 +54,17 @@ function printD(str)
 	end
 end
 
+function printDMsgOrErr(err, sucess, fail)
+	if err then
+		printD(fail)
+		printD(err)
+	else
+		if sucess then
+			printD(sucess)
+		end
+	end
+end
+
 function MsgPopup(str)
 	-- Maximum 2 lines of text
 	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
@@ -102,6 +113,9 @@ function Fixer_ReloadLua()
 	end)
 end
 
+function GetDate()
+	return "--------" .. os.date("%Y/%m/%d-%H:%M:%S") .. "--------"
+end
 
 
 
@@ -116,6 +130,7 @@ local LayoutCapture, LayoutSetParams
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
+	printD(GetDate())
 	printD("CreateShortcuts()")
 	local Actions = ChoGGi.Temp.Actions
 	
@@ -508,7 +523,7 @@ function CaptureObjects()
 	tubes  = GetObjsByEntity(supplyGrid, "Tube")
 
 	local numCapturedObjects = #buildings + #cables + #tubes
-	MsgPopup("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
+	printD("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
 end
 
 function TableEmpty(table)
@@ -530,7 +545,7 @@ function AllObjectsTablesEmpty()
 end
 
 LayoutCapture = function()
-	printD("----------------------------")
+	printD(GetDate())
 	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
 
 	-- After this all params in layoutSettings are correct
@@ -575,38 +590,27 @@ LayoutCapture = function()
 	end
 end
 
-function ShowMsgOrErr(err, sucess, fail)
-	if err then
-		MsgPopup(fail)
-		-- Print additional error info only in log
-		printL(err)
-	else
-		if sucess then
-			MsgPopup(sucess)
-		end
-	end
-end
-
 WriteToFiles = function()
 	-- string err AsyncStringToFile(...) - by default overwrites file
 	-- "items.lua" not needed. Empty is OK. It used by in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
-	ShowMsgOrErr(
+	printDMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
 		"Layout Saved: " .. layoutFileNameNoPath,
 		"Layout Saving Failed")
-	ShowMsgOrErr(
+	printDMsgOrErr(
 		AsyncStringToFile(metadataFileName, BuildMetadataLua()),
 		"metadata.lua Updated",
 		"metadata.lua Update Failed")
 	if not FileExist(layoutIconFileName) then
-		ShowMsgOrErr(
+		printDMsgOrErr(
 			AsyncCopyFile(menuIconFileName, layoutIconFileName),
 			"Icon Copied: " .. layoutSettings.id .. ".png",
 			"Icon Copy Failed")
 	else
 		local str = "Icon Not Copied (already exist): ".. layoutSettings.id .. ".png"
-		MsgPopup(str)
+		printD(str)
 	end
+	MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
 end
 
 local IsDialogWindowOpen = false
@@ -690,10 +694,13 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	saveOrphan = saveOrphan or false
 	local str = ""
 	local template
-	if type == "cables" then
+	if string.lower(type) == "cables" then
 		template = "electricity_grid"
-	elseif type == "tubes" then
+	elseif string.lower(type) == "tubes" then
 		template = "life_support_grid"
+	else
+		printD('HexObjLineAsStr(): Wrong "type" argument: ' .. type)
+		return ""
 	end
 	
 	-- Do not save objects if begin and end position is equal (example: "Moisture Vaporator")
@@ -706,7 +713,7 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 			"pos", point(]] .. hexBegin.q .. [[, ]] .. hexBegin.r .. [[),
 			"cur_pos1", point(]] .. hexEnd.q .. [[, ]] .. hexEnd.r .. [[),
 		}),]] .. "\n\n"
-		printD("Line=" .. hexBegin.q .. "," .. hexBegin.r .. "|" .. hexEnd.q .. "," .. hexEnd.r .. "\n")
+		printD(type .. ": Line=" .. hexBegin.q .. "," .. hexBegin.r .. "|" .. hexEnd.q .. "," .. hexEnd.r)
 	end
 	return str
 end
@@ -879,23 +886,28 @@ end
 
 function BuildGrid(worldObjs, baseHex, type)
 	local strTbl = {"",}
-	local comment
-	if type == "cables" then
-		comment = "\t\t-- Cables\n"
-	elseif type == "tubes" then
-		comment = "\t\t-- Tubes\n"
-	end
-	table.insert(strTbl, comment)
+	if not TableEmpty(worldObjs) then
+		local comment
+		if string.lower(type) == "cables" then
+			comment = "\t\t-- Cables\n"
+		elseif string.lower(type) == "tubes" then
+			comment = "\t\t-- Tubes\n"
+		else
+			printD('BuildGrid(): Wrong "type" argument: ' .. type)
+			return ""
+		end
+		table.insert(strTbl, comment)
 
-	-- After successful finding or saving, objects removed from "hexObjs"
-	-- At the end, hexObjs must be empty
-	local hexObjs = HexObjs(worldObjs, baseHex)
-	local orphanNum = BuildOrphans(hexObjs, type, strTbl)
-	local lineNum = BuildLines(hexObjs, type, strTbl)
-	
-	printD(type .. ": GridOrphan = " .. orphanNum .. " GridLine = " .. lineNum)
-	if not TableEmpty(hexObjs) then
-		MsgPopup(type .. " ERROR: table not empty, some objects not saved")
+		-- After successful finding or saving, objects removed from "hexObjs"
+		-- At the end, hexObjs must be empty
+		local hexObjs = HexObjs(worldObjs, baseHex)
+		local orphanNum = BuildOrphans(hexObjs, type, strTbl)
+		local lineNum = BuildLines(hexObjs, type, strTbl)
+		
+		printD(type .. ": GridOrphan = " .. orphanNum .. " GridLine = " .. lineNum)
+		if not TableEmpty(hexObjs) then
+			MsgPopup(type .. " ERROR: table not empty, some objects not saved")
+		end
 	end
 	return table.concat(strTbl)
 end
@@ -922,8 +934,9 @@ function GetBaseObjectPosition()
 end
 
 function BuildBuildings(worldObjs, baseHex)
-	local str = "\t\t-- Buildings\n"
+	local str = ""
 	if not TableEmpty(worldObjs) then
+		str = str .. "\t\t-- Buildings\n"
 		for i, obj in ipairs(worldObjs) do
 			local q, r = WorldToHex(obj)
 			-- Calculate offset from "base object"
@@ -994,8 +1007,8 @@ BuildLayoutBodyLua = function()
 	-- Base point (zero point)
 	local baseHex = GetBaseObjectPosition()
 	str = str .. BuildBuildings(buildings, baseHex)
-	str = str .. BuildGrid(cables, baseHex, "cables")
-	str = str .. BuildGrid(tubes, baseHex, "tubes")
+	str = str .. BuildGrid(cables, baseHex, "Cables")
+	str = str .. BuildGrid(tubes, baseHex, "Tubes")
 	-- str = str .. BuildTubesTesting(tubes, baseHex)
 	return str
 end
@@ -1015,7 +1028,7 @@ end
 -- Return list of files in "Code/Layout" folder
 GetLayoutListFiles = function()
 	local err, layoutListFiles = AsyncListFiles(CurrentModPath .. "Code/Layout", "*.lua", "relative, sorted")
-	ShowMsgOrErr(
+	printDMsgOrErr(
 		err,
 		nil,
 		"Error AsyncListFiles():")
