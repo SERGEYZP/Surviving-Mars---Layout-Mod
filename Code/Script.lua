@@ -696,7 +696,8 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 		template = "life_support_grid"
 	end
 	
-	-- Do not save objects if begin and end position is equal OR save it if it is orphan
+	-- Do not save objects if begin and end position is equal (example: "Moisture Vaporator")
+	-- OR save it if we saving orphans
 	if not HexEqual(hexBegin, hexEnd) or saveOrphan then
 		-- Tubes and Cables don't have "template_name" parameter, write it explicity
 		str = str .. [[
@@ -824,7 +825,7 @@ function FindEndObj(hexObjs, hexObjBegin, direction)
 	while (true) do
 		local hexNext = HexNeighbor(hexObjPrev.hex, direction)
 		local hexObjNext = FindObjByHex(hexObjs, hexNext)
-		-- Tube line can end not on "TubeHub"
+		-- Tube line can end not on "TubeHub" (example: "Oxygen Tank")
 		if not hexObjNext then
 			return hexObjPrev
 		end
