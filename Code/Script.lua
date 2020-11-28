@@ -121,9 +121,10 @@ end
 
 ---- SHORTCUTS ----
 
-local ShortcutCapture   =  "Ctrl-Insert"
-local ShortcutSetParams =  "Shift-Insert"
-local ShortcutReloadLua =  "Insert"
+local ShortcutCapture   = "Ctrl-Insert"
+local ShortcutSetParams = "Shift-Insert"
+local ShortcutShowInfo  = "Alt-Insert"
+local ShortcutReloadLua = "Insert"
 
 -- Function forward declaration
 local LayoutCapture, LayoutSetParams
@@ -149,6 +150,14 @@ function CreateShortcuts()
 		ActionId = "Layout.Set.Params",
 		OnAction = LayoutSetParams,
 		ActionShortcut = ShortcutSetParams,
+		ActionBindable = true,
+	}
+
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Show Info",
+		ActionId = "Layout.Show.Info",
+		OnAction = LayoutShowInfo,
+		ActionShortcut = ShortcutShowInfo,
 		ActionBindable = true,
 	}
 	
@@ -285,7 +294,7 @@ local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, me
 
 local default_build_category = #origMenuId
 local default_build_pos = 0
-local default_radius = 10000
+local default_radius = 100
 
 local layoutSettings = {
 	build_category = default_build_category,
@@ -317,20 +326,20 @@ ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 [Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
 [Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
-	Place your buildings.
+	Place your buildings (recommend on empty map).
 	Press [Alt-B] to instant building.
 SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
 	Press [Ctrl-M] and measure radius of building's layout.
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
-	Two window will appear: "Examine" and "Edit Object". Move "Examine" to see both windows.
+	Window will appear: "Edit Object".
 	Set parameters in "Edit Object" window:
 		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed. See hint in another window.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
 		"description", "display_name" - as you like.
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
 			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
-		"radius" (nil or positive number [to infinity and beyond]) capture radius, multiply measured value in meters by 100.
+		"radius" (nil or positive number [to infinity and beyond]) capture radius in meters.
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. ']\n' .. [[
@@ -343,6 +352,7 @@ WHAT TO DO:
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
 -- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
+-- "radius" = meters * 100
 -- Added 4th argument "class": only get objects inherited from "class", provided by this parameter
 function ReturnAllNearby(radius, sort, pt, class)
 	-- local is faster then global
@@ -517,8 +527,8 @@ function IsIdUnique(layoutFileExist)
 end
 
 function CaptureObjects()
-	buildings        = ReturnAllNearby(layoutSettings.radius, nil, nil, "Building")
-	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, nil, "BreakableSupplyGridElement")
+	buildings        = ReturnAllNearby(layoutSettings.radius * 100, nil, nil, "Building")
+	local supplyGrid = ReturnAllNearby(layoutSettings.radius * 100, nil, nil, "BreakableSupplyGridElement")
 	cables = GetObjsByEntity(supplyGrid, "Cable")
 	tubes  = GetObjsByEntity(supplyGrid, "Tube")
 
@@ -613,18 +623,35 @@ WriteToFiles = function()
 	MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
 end
 
-local IsDialogWindowOpen = false
+local IsDialogWindowOpen_Info = false
+local IsDialogWindowOpen_Params = false
 
 LayoutSetParams = function()
 	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
 	local CloseDialogsECM = ChoGGi.ComFuncs.CloseDialogsECM
-	if IsDialogWindowOpen then
-		IsDialogWindowOpen = false
+	if IsDialogWindowOpen_Params then
+		-- If we close "Info" dialog window here, flag "IsDialogWindowOpen_Info" will remain "true".
+			-- If we hit hotkey to show "Info" window, it will not appear. So clear this flag.
+		IsDialogWindowOpen_Info = false
+		IsDialogWindowOpen_Params = false
+		-- Close ALL windows
 		CloseDialogsECM()
 	else
-		IsDialogWindowOpen = true
-		OpenExamine(GUIDE)
+		IsDialogWindowOpen_Params = true
 		OpenInObjectEditorDlg(layoutSettings)
+	end
+end
+
+LayoutShowInfo = function()
+	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
+	local CloseDialogsECM = ChoGGi.ComFuncs.CloseDialogsECM
+	if IsDialogWindowOpen_Info then
+		IsDialogWindowOpen_Info = false
+		IsDialogWindowOpen_Params = false
+		CloseDialogsECM()
+	else
+		IsDialogWindowOpen_Info = true
+		OpenExamine(GUIDE)
 	end
 end
 
