@@ -89,6 +89,9 @@ function MsgPopup(str)
 	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
 end
 
+-- ### Changed:
+-- - Debug>Reload LUA (changed how it reloads, so now it works without messing up ECM).
+-- Wait for new release with latest commits.
 -- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
 -- ECM/Lib must be enabled before all others mod
 function ChoGGi_ReloadLua()
@@ -341,9 +344,11 @@ SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
 	Press [Ctrl-M] and measure radius of building's layout.
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
-	Window will appear: "Edit Object".
+	Two windows will appear: "Choose Building Menu", "Edit Object".
+	Choose building menu by double click, or ignore it (previous selected menu category will be used). Note: "building_category"
+		value will not be updated after double click, but will be saved anyway!
 	Set parameters in "Edit Object" window:
-		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed. See hint in another window.
+		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
 		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
 		"description", "display_name" - as you like.
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
@@ -649,6 +654,29 @@ WriteToFiles = function()
 	end
 end
 
+function SetBuildCategory()
+	local itemList = {}
+	for i, v in ipairs(origMenuId) do
+		itemList[#itemList + 1] = {text = origMenuId[i], value = i}
+	end
+
+	local function CallBackFunc(choice)
+		if choice.nothing_selected then
+			return
+		end
+		layoutSettings.build_category = choice[1].value
+	end
+
+	ChoGGi.ComFuncs.OpenInListChoice{
+		callback = CallBackFunc,
+		items = itemList,
+		title = "Choose Building Menu",
+		skip_sort = true,
+		height = 350.0,
+		width = 150.0,
+	}
+end
+
 local IsDialogWindowOpen_Info = false
 local IsDialogWindowOpen_Params = false
 
@@ -665,6 +693,7 @@ LayoutSetParams = function()
 	else
 		IsDialogWindowOpen_Params = true
 		OpenInObjectEditorDlg(layoutSettings)
+		SetBuildCategory()
 	end
 end
 
