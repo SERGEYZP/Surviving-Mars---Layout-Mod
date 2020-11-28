@@ -5,8 +5,9 @@
 
 -- On "Reload Lua" game not re-read mod's "metadata.lua", so when we add here path to new layout, it will
 	-- not load it. Only on "restart" game will read updated "metadata.lua".
-	-- Ideally we must save all layouts to one file, never change "metadata.lua" and use "ChoGGi.ComFuncs.UpdateBuildMenu()"
-	-- to update menus.
+	-- So concatenate all layout files in one "Layout.lua" file, never change "metadata.lua".
+	-- "ChoGGi.ComFuncs.UpdateBuildMenu()" to update menus on the fly (if we add layout programmatically
+	-- via "PlaceObj(...)"), but we "Reload Lua" instead.
 
 ---- LUA STUFF ----
 
@@ -290,12 +291,12 @@ end
 ---- MAIN CODE ----
 
 -- Function forward declaration
-local BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua, BuildMetadataLua
+local BuildLayoutHeadLua, BuildLayoutBodyLua, BuildLayoutTailLua, BuildLayoutLua, BuildMetadataLua, BuildLayoutsLua
 local GetLayoutListFiles, WriteToFiles
 
 local buildings, cables, tubes
 
-local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, menuIconFileName, layoutIconFileName
+local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
 
 local default_build_category = #origMenuId
 local default_build_pos = 0
@@ -465,6 +466,8 @@ end
 function SetAllFileNames()
 	-- metadata.lua
 	metadataFileName = CurrentModPath .. "metadata.lua"
+	-- Layouts.lua
+	layoutsFileName = CurrentModPath .. "Code/Layouts.lua"
 	
 	-- Code/Layout/layout.lua
 	-- Path to file
@@ -507,6 +510,7 @@ function IsIdPresentInLayoutFolder(id)
 end
 
 function IsIdUnique(layoutFileExist)
+	local MsgWait = ChoGGi.ComFuncs.MsgWait
 	local id = layoutSettings.id
 	-- If "id" is present in "Layout" folder in different file - Not unique - return false
 	-- If "id" is present in "Layout" folder in file with same name - Not unique, but we can overwrite it and it will be unique - return true
@@ -608,21 +612,30 @@ end
 WriteToFiles = function()
 	-- string err AsyncStringToFile(...) - by default overwrites file
 	-- "items.lua" not needed. Empty is OK. It used by in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
+	-- string err AsyncCreatePath(string pathname)
+	printDMsgOrErr(
+		AsyncCreatePath(CurrentModPath .. "Code/Layout"),
+		'"Layout" Folder Created (if not exist before)',
+		'"Layout" Folder Not Created')
 	printDMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
 		"Layout Saved: " .. layoutFileNameNoPath,
-		"Layout Saving Failed")
+		"Layout Saving Failed: " .. layoutFileNameNoPath)
 	printDMsgOrErr(
-		AsyncStringToFile(metadataFileName, BuildMetadataLua()),
-		"metadata.lua Updated",
-		"metadata.lua Update Failed")
+		AsyncStringToFile(layoutsFileName, BuildLayoutsLua()),
+		'"Layouts.lua" Updated',
+		'"Layouts.lua" Update Failed')
+	-- printDMsgOrErr(
+		-- AsyncStringToFile(metadataFileName, BuildMetadataLua()),
+		-- '"metadata.lua" Updated',
+		-- '"metadata.lua" Update Failed')
 	if not FileExist(layoutIconFileName) then
 		printDMsgOrErr(
 			AsyncCopyFile(menuIconFileName, layoutIconFileName),
 			"Icon Copied: " .. layoutSettings.id .. ".png",
-			"Icon Copy Failed")
+			"Icon Copy Failed: " .. layoutSettings.id .. ".png")
 	else
-		local str = "Icon Not Copied (already exist): ".. layoutSettings.id .. ".png"
+		local str = "Icon Not Copied (already exist): " .. layoutSettings.id .. ".png"
 		printD(str)
 	end
 	MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
@@ -1050,7 +1063,7 @@ BuildLayoutTailLua = function()
 	})
 end
 ]]
-	return str
+	return str .. "\n\n\n\n"
 end
 
 BuildLayoutLua = function()
@@ -1067,11 +1080,12 @@ GetLayoutListFiles = function()
 	return layoutListFiles
 end
 
+-- Not used anymore, only for history
 BuildMetadataLua = function()
 	local layoutListFiles = GetLayoutListFiles()
 	local strLayoutFiles = ""
-	for i, strFile in ipairs(layoutListFiles) do
-		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Code/Layout/' .. strFile .. '",\n'
+	for i, strFileName in ipairs(layoutListFiles) do
+		strLayoutFiles = strLayoutFiles .. '\t\t"' .. 'Code/Layout/' .. strFileName .. '",\n'
 	end
 	local str = [[
 return PlaceObj('ModDef', {
@@ -1114,6 +1128,20 @@ return PlaceObj('ModDef', {
 	'TagOther', true,
 })
 ]]
+	return str
+end
+
+BuildLayoutsLua = function()
+	local layoutListFiles = GetLayoutListFiles()
+	local str = ""
+	for i, strFileName in ipairs(layoutListFiles) do
+		local err, data = AsyncFileToString(CurrentModPath .. "Code/Layout/" .. strFileName)
+		printDMsgOrErr(
+			err,
+			nil,
+			"Error AsyncFileToString():")
+		str = str .. data
+	end
 	return str
 end
 
