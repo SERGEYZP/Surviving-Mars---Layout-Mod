@@ -60,8 +60,11 @@ function printD(str)
 	end
 end
 
+local GlobalError = false
+
 function printDMsgOrErr(err, sucess, fail)
 	if err then
+		GlobalError = true
 		printD(fail)
 		printD(err)
 	else
@@ -638,7 +641,12 @@ WriteToFiles = function()
 		local str = "Icon Not Copied (already exist): " .. layoutSettings.id .. ".png"
 		printD(str)
 	end
-	MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
+	if GlobalError == true then
+		GlobalError = false
+		MsgPopup("Something went wrong :(")
+	else
+		MsgPopup("Layout Saved: " .. layoutFileNameNoPath .. '\n"Reload Lua" [' .. ShortcutReloadLua .. '] to update building menus.')
+	end
 end
 
 local IsDialogWindowOpen_Info = false
