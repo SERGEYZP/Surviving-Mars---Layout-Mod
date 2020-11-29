@@ -119,7 +119,7 @@ end
 
 -- ReloadLua() is in-game function name, don't use it!!!
 function Fixer_ReloadLua()
-	-- Remove all lyaouts from game before reload lua, that we can manually edit layout in text editor and see reulst after reload
+	-- Remove all lyaouts from game before reload lua, that we can manually edit layout in text editor and see resulst after reload
 	local bt = BuildingTemplates
 	for i, id in ipairs(GetIdList()) do
 		bt[id] = nil
@@ -262,7 +262,7 @@ function CreateMenus()
 	-- This line was in example, but it not work. Even if "id" is present, "table.find" return "not true" value :(
 	-- if not table.find(bc, "id", id) then
 	if not bc[id] then
-		-- TODO change to proper way? ... PlaceObj('BuildMenuSubcategory', ... )
+		-- In source code developers don't use PlaceObj(...), so we too
 		bc[#bc + 1] = {
 			id = id,
 			name = displayName,
