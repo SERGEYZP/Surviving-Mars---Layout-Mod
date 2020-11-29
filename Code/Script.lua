@@ -852,6 +852,14 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	return str
 end
 
+function IsHub(worldObj)
+	local entity = worldObj:GetEntity()
+	return	entity == "CableHub"       or entity == "TubeHub"       or
+			entity == "CableSwitch"    or entity == "TubeSwitch"    or
+			entity == "CableSoftLeft"  or entity == "CableHardLeft" or
+			entity == "CableSoftRight" or entity == "CableHardRight"
+end
+
 -- Make our objects - simpler version of in-game objects
 function HexObjs(worldObjs, baseHex)
 	local hexObjs ={}
@@ -861,7 +869,7 @@ function HexObjs(worldObjs, baseHex)
 		local entity = obj:GetEntity()
 		local hub = false
 		
-		if entity == "TubeSwitch" or entity == "TubeHub" or entity == "CableSwitch" or entity == "CableHub" or entity == "CableSoftLeft" or entity == "CableSoftRight" then
+		if IsHub(obj) then
 			hub = true
 		end
 		
@@ -1187,7 +1195,7 @@ function BuildTubesTesting(worldObjs, baseHex)
 			r = r - baseHex.r
 			local hub = false
 			local entity = obj:GetEntity()
-			if entity == "TubeSwitch" or entity == "TubeHub" or entity == "CableSwitch" or entity == "CableHub" or entity == "CableSoftLeft" or entity == "CableSoftRight" then
+			if IsHub(obj) then
 				hub = true
 			end
 			str = str .. [[{ conn = ]] .. obj.conn - 16256 .. [[, hex = Hex(]] .. q .. [[,]] .. r .. [[), hub = ]] .. tostring(hub) .. [[, entity = "]] .. entity .. [["},]] .. "\n"
