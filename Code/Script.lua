@@ -1021,29 +1021,33 @@ function BuildLines(hexObjs, type, strTbl)
 	return lineNum
 end
 
-function AllNeighborsExist(hexObjs, hexObj)
+function IsAllNeighbors(hexObjs, hexObj)
 	-- AxialDirection() will change "conn" value, save it
 	local conn = hexObj.conn
 	local allNeighborsExist = true
+	local allNeighborsNotExist = true
 	local noConn = false
 	while (not noConn) do
 		local direction
 		direction, noConn = AxialDirection(hexObj)
 		local hexNeighbor = HexNeighbor(hexObj.hex, direction)
 		local hexObjNeighbor = FindObjByHex(hexObjs, hexNeighbor)
-		if not hexObjNeighbor then
+		if hexObjNeighbor then
+			allNeighborsNotExist = false
+		else
 			allNeighborsExist = false
 		end
 	end
 	-- Restore previous value
 	hexObj.conn = conn
-	return allNeighborsExist
+	return allNeighborsExist, allNeighborsNotExist
 end
 
 function SetHubOnLineEnding(hexObjs)
 	for i, hexObj in ipairs(hexObjs) do
 		-- If "conn" parameter says obj has neighbor, but actually did not -> this is end of line
-		if not AllNeighborsExist(hexObjs, hexObj) then
+		local allNeighborsExist, allNeighborsNotExist = IsAllNeighbors(hexObjs, hexObj)
+		if not allNeighborsExist then
 			hexObj.hub = true
 		end
 	end
