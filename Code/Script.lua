@@ -1046,9 +1046,22 @@ function IsAllNeighbors(hexObjs, hexObj)
 	return allNeighborsExist, allNeighborsNotExist
 end
 
+function SetAdditionalOrphans(hexObjs)
+	for i, hexObj in ipairs(hexObjs) do
+		if hexObj.conn ~= 0 then
+			-- If "conn" parameter says object has neighbors, but actually all of them are absent -> this is orphan
+			local allNeighborsExist, allNeighborsNotExist = IsAllNeighbors(hexObjs, hexObj)
+			if allNeighborsNotExist then
+				-- Orphan must don't have connections
+				hexObj.conn = 0
+			end
+		end
+	end
+end
+
 function SetHubOnLineEnding(hexObjs)
 	for i, hexObj in ipairs(hexObjs) do
-		-- If "conn" parameter says obj has neighbor, but actually did not -> this is end of line
+		-- If "conn" parameter says object has neighbors, but actually at least one is absent -> this is end of line
 		local allNeighborsExist, allNeighborsNotExist = IsAllNeighbors(hexObjs, hexObj)
 		if not allNeighborsExist then
 			hexObj.hub = true
@@ -1073,6 +1086,12 @@ function BuildGrid(worldObjs, baseHex, type)
 		-- After successful finding or saving, objects removed from "hexObjs"
 		-- At the end, hexObjs must be empty
 		local hexObjs = HexObjs(worldObjs, baseHex)
+		
+		-- Mark additional orphans
+		if IsTubes(type) then
+			SetAdditionalOrphans(hexObjs)
+		end
+		
 		local orphanNum = BuildOrphans(hexObjs, type, strTbl)
 		local lineNum = BuildLines(hexObjs, type, strTbl)
 		
