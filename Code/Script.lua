@@ -1034,10 +1034,11 @@ function BuildBuildings(worldObjs, baseHex)
 			"pos", point(]] .. q .. [[, ]] .. r .. [[),
 			"dir", ]] .. HexAngleToDirection(obj) .. [[,
 			"entity", "]] .. obj:GetEntity() .. [[",]] .. "\n"
-			if obj.template_name == "UniversalStorageDepot" then
-				str = str .. [[
-			"instant", true,]] .. "\n"
-			end
+			-- "instant" parameter not needed at all, game build "Storages" instantly in any case
+			-- if string.find(obj.template_name, "Storage") then
+				-- str = str .. [[
+			-- "instant", true,]] .. "\n"
+			-- end
 			str = str .. [[
 		}),]] .. "\n\n"
 		end

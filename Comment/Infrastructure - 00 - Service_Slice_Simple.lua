@@ -66,7 +66,7 @@ function OnMsg.ClassesPostprocess()
 		--		Example: "Diner" building have default "entity" "Restaurant".
 		-- "instant" -> Boolean -> Instant build.
 		--		Possible values: true, false.
-		--		Example: For "Universal Depot" must be "true".
+		--		Example: For "Universal Depot" must be "true". But game build "Storages" instantly in any case. Not needed.
 		
 		PlaceObj("LayoutConstructionEntry", {
 			"template", "Diner",
