@@ -143,13 +143,15 @@ end
 
 
 
+
 ---- SHORTCUTS ----
 
-local ShortcutCapture   = "Ctrl-Insert"
-local ShortcutSetParams = "Shift-Insert"
-local ShortcutShowInfo  = "Alt-Insert"
-local ShortcutReloadLua = "Insert"
-local ShortcutTerrainTextureChange = "Ctrl-Shift-Insert"
+local ShortcutCapture              = "Ctrl-L"
+local ShortcutCaptureWithoutDome   = "Ctrl-Shift-L"
+local ShortcutSetParams            = "Shift-L"
+local ShortcutShowInfo             = "Alt-L"
+local ShortcutReloadLua            = "Insert"
+local ShortcutTerrainTextureChange = "Ctrl-Insert"
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
