@@ -989,6 +989,34 @@ function BuildLines(hexObjs, type, strTbl)
 	return lineNum
 end
 
+function AllNeighborsExist(hexObjs, hexObj)
+	-- AxialDirection() will change "conn" value, save it
+	local conn = hexObj.conn
+	local allNeighborsExist = true
+	local noConn = false
+	while (not noConn) do
+		local direction
+		direction, noConn = AxialDirection(hexObj)
+		local hexNeighbor = HexNeighbor(hexObj.hex, direction)
+		local hexObjNeighbor = FindObjByHex(hexObjs, hexNeighbor)
+		if not hexObjNeighbor then
+			allNeighborsExist = false
+		end
+	end
+	-- Restore previous value
+	hexObj.conn = conn
+	return allNeighborsExist
+end
+
+function SetHubOnLineEnding(hexObjs)
+	for i, hexObj in ipairs(hexObjs) do
+		-- If "conn" parameter says obj has neighbor, but actually did not -> this is end of line
+		if not AllNeighborsExist(hexObjs, hexObj) then
+			hexObj.hub = true
+		end
+	end
+end
+
 function BuildGrid(worldObjs, baseHex, type)
 	local strTbl = {"",}
 	if not TableEmpty(worldObjs) then
@@ -1009,6 +1037,12 @@ function BuildGrid(worldObjs, baseHex, type)
 		local orphanNum = BuildOrphans(hexObjs, type, strTbl)
 		local lineNum = BuildLines(hexObjs, type, strTbl)
 		
+		-- Tube line without hubs at both ends (example straight line between two domes)
+		if IsTubes(type) then
+			SetHubOnLineEnding(hexObjs)
+			lineNum = lineNum + BuildLines(hexObjs, type, strTbl)
+		end
+
 		printD(type .. ": GridOrphan = " .. orphanNum .. " GridLine = " .. lineNum)
 		if not TableEmpty(hexObjs) then
 			MsgPopup(type .. " ERROR: table not empty, some objects not saved")
