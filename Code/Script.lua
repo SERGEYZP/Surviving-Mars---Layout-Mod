@@ -378,7 +378,7 @@ APPLY:
 WHAT TO DO:
 	Press []] .. ShortcutTerrainTextureChange .. [[] and make screenshot.
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
-	Template: "...\Surviving Mars Green Planet\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
+	Icon template: "...\Surviving Mars Green Planet\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
 
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
