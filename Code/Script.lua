@@ -1086,11 +1086,8 @@ function BuildGrid(worldObjs, baseHex, type)
 		-- After successful finding or saving, objects removed from "hexObjs"
 		-- At the end, hexObjs must be empty
 		local hexObjs = HexObjs(worldObjs, baseHex)
-		
-		-- Mark additional orphans
-		if IsTubes(type) then
-			SetAdditionalOrphans(hexObjs)
-		end
+		-- Set additional orphans
+		SetAdditionalOrphans(hexObjs)
 		
 		local orphanNum = BuildOrphans(hexObjs, type, strTbl)
 		local lineNum = BuildLines(hexObjs, type, strTbl)
