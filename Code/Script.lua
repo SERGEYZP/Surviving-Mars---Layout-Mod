@@ -977,8 +977,11 @@ function BuildLines(hexObjs, type, strTbl)
 			local direction
 			direction, noConn = AxialDirection(hexObjBegin)
 			local hexObjEnd = FindEndObj(hexObjs, hexObjBegin, direction)
-			strTbl[#strTbl + 1] = HexObjLineAsStr(hexObjBegin.hex, hexObjEnd.hex, type)
-			lineNum = lineNum + 1
+			local str = HexObjLineAsStr(hexObjBegin.hex, hexObjEnd.hex, type)
+			if str ~= "" then
+				strTbl[#strTbl + 1] = str
+				lineNum = lineNum + 1
+			end
 		end
 		
 		RemoveNoConn(hexObjs)
