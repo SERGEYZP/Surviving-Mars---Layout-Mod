@@ -308,7 +308,7 @@ local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, la
 
 local default_build_category = #origMenuId
 local default_build_pos = 0
-local default_radius = 100
+local default_radius = 400
 
 local layoutSettings = {
 	build_category = default_build_category,
