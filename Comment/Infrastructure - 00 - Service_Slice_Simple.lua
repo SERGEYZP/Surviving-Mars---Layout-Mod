@@ -46,6 +46,7 @@ function OnMsg.ClassesPostprocess()
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Tools" -> "Ged Editor".
 		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Open In Ged Objects Editor".
 		--		Find: "Root Object" on left screen (Selected by default) -> "Misc" on right screen -> "Class Template".
+		--		"ElectricitySwitch", "LifesupportSwitch", "passage_grid" not supported.
 		-- "pos" -> point(x,y) -> Relative position ("base point" of 3D model).
 		--		By default (if you skip parameter) it will be point(0,0).
 		--		Help: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Grids" -> "Toggle Building Grid Position" (Shift+F3).
