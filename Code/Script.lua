@@ -768,6 +768,22 @@ end
 	-- end	of line, save line. Delete objects with no connections. Loop this algorithm	until we cannot find hub.
 	-- When loop is stopped, table with objects must be empty.
 
+function IsCables(type)
+	if string.lower(type) == "cables" then
+		return true
+	else
+		return false
+	end
+end
+
+function IsTubes(type)
+	if string.lower(type) == "tubes" then
+		return true
+	else
+		return false
+	end
+end
+
 function Hex(q, r)
 	return { q = q, r = r, }
 end
@@ -780,9 +796,9 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	saveOrphan = saveOrphan or false
 	local str = ""
 	local template
-	if string.lower(type) == "cables" then
+	if IsCables(type) then
 		template = "electricity_grid"
-	elseif string.lower(type) == "tubes" then
+	elseif IsTubes(type) then
 		template = "life_support_grid"
 	else
 		printD('HexObjLineAsStr(): Wrong "type" argument: ' .. type)
@@ -974,9 +990,9 @@ function BuildGrid(worldObjs, baseHex, type)
 	local strTbl = {"",}
 	if not TableEmpty(worldObjs) then
 		local comment
-		if string.lower(type) == "cables" then
+		if IsCables(type) then
 			comment = "\t\t-- Cables\n"
-		elseif string.lower(type) == "tubes" then
+		elseif IsTubes(type) then
 			comment = "\t\t-- Tubes\n"
 		else
 			printD('BuildGrid(): Wrong "type" argument: ' .. type)
