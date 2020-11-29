@@ -653,8 +653,8 @@ function LayoutCapture()
 					-- Layout script by default skip creating object if it already exist in game.
 					-- Delete our layout object from in-game building's table.
 					-- So after reloading lua updated layout become visible.
-					-- TODO add objects on the fly, without reloading lua.
-					BuildingTemplates[layoutSettings.id] = nil
+					-- I commented here, because I do it in Fixer_ReloadLua()
+					-- BuildingTemplates[layoutSettings.id] = nil
 					WriteToFiles()
 				end
 			end,
