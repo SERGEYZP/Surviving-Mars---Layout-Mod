@@ -117,6 +117,11 @@ end
 
 -- ReloadLua() is in-game function name, don't use it!!!
 function Fixer_ReloadLua()
+	-- Remove all lyaouts from game before reload lua, that we can manually edit layout in text editor and see reulst after reload
+	local bt = BuildingTemplates
+	for i, id in ipairs(GetIdList()) do
+		bt[id] = nil
+	end
 	CreateRealTimeThread(function()
 		MsgPopup("----BEGIN-RELOAD-LUA----")
 		Sleep(1000)
@@ -509,6 +514,16 @@ function FileExist(fileName)
 	else
 		return true
 	end
+end
+
+function GetIdList()
+	local idList = {}
+	local layoutListFiles = GetLayoutListFiles()
+	for i, fileName in ipairs(layoutListFiles) do
+		-- %w - alphanumeric character
+		idList[#idList + 1] = string.match(fileName, " - ([%w_]+).lua")
+	end
+	return idList
 end
 
 function IsIdPresentInLayoutFolder(id)
