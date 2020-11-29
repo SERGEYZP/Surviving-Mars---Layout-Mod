@@ -146,12 +146,13 @@ end
 
 ---- SHORTCUTS ----
 
-local ShortcutCapture              = "Ctrl-L"
-local ShortcutCaptureWithoutDome   = "Ctrl-Shift-L"
-local ShortcutSetParams            = "Shift-L"
-local ShortcutShowInfo             = "Alt-L"
-local ShortcutReloadLua            = "Insert"
-local ShortcutTerrainTextureChange = "Ctrl-Insert"
+local key = "Insert"
+local ShortcutCapture              = "Ctrl-" .. key
+local ShortcutCaptureWithoutDome   = "Ctrl-Shift-" .. key
+local ShortcutSetParams            = "Shift-" .. key
+local ShortcutShowInfo             = "Alt-" .. key
+local ShortcutReloadLua            = key
+local ShortcutTerrainTextureChange = "Ctrl-Alt-Shift-" .. key
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
@@ -166,6 +167,14 @@ function CreateShortcuts()
 		ActionId = "Layout.Capture",
 		OnAction = LayoutCapture,
 		ActionShortcut = ShortcutCapture,
+		ActionBindable = true,
+	}
+
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Capture without Dome",
+		ActionId = "Layout.Capture.without.Dome",
+		OnAction = LayoutCaptureWithoutDome,
+		ActionShortcut = ShortcutCaptureWithoutDome,
 		ActionBindable = true,
 	}
 	
@@ -193,7 +202,7 @@ function CreateShortcuts()
 		ActionBindable = true,
 	}
 	
-	if DEBUG then
+	-- if DEBUG then
 		Actions[#Actions + 1] = {
 			ActionName = "Layout Reload Lua",
 			ActionId = "Layout.Reload.Lua",
@@ -201,7 +210,7 @@ function CreateShortcuts()
 			ActionShortcut = ShortcutReloadLua,
 			ActionBindable = true,
 		}
-	end
+	-- end
 end
 
 
@@ -316,6 +325,7 @@ end
 
 ---- MAIN CODE ----
 
+local skipDome = false
 local buildings, cables, tubes
 
 local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
@@ -578,7 +588,10 @@ function RemoveUnsupportedBuildings(worldObjs)
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
 		-- "Passages" not supported by in-game "LayoutConstruction"
 		local template_name = worldObjs[i].template_name
-		if template_name == "" or template_name == "Tunnel" then
+		local entity = worldObjs[i]:GetEntity()
+		if template_name == "" or template_name == "Tunnel"
+			-- Skip domes, when we capture witout domes
+			or (skipDome and string.find(entity, "Dome")) then
 			table.remove(worldObjs, i)
 		end
 	end
@@ -657,6 +670,12 @@ function LayoutCapture()
 	else
 		WriteToFiles()
 	end
+end
+
+function LayoutCaptureWithoutDome()
+	skipDome = true
+	LayoutCapture()
+	skipDome = false
 end
 
 function WriteToFiles()
@@ -1388,6 +1407,7 @@ function TerrainTextureChange()
 	end -- CallBackFunc
 
 	CallBackFunc(choice)
+	printD("Terrain texture changed")
 end
 
 
