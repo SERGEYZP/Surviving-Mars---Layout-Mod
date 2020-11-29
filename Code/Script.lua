@@ -885,6 +885,9 @@ function HexObjs(worldObjs, baseHex)
 end
 
 function HexNeighbor(hex, direction)
+	if direction < 1 or direction > 6 then
+		printD('HexNeighbor(): wrong "direction" parameter: ' .. direction)
+	end
 	local axialDirections = {
 		Hex( 1,  0),
 		Hex( 0,  1),
