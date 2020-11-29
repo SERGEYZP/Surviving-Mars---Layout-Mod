@@ -364,8 +364,9 @@ APPLY:
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
 WHAT TO DO:
 	Press []] .. ShortcutTerrainTextureChange .. [[] and make screenshot.
-	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n\n' .. [[
+	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
 	Template: "...\Surviving Mars Green Planet\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
+
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
