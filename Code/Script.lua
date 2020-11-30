@@ -392,17 +392,16 @@ WHAT TO DO [Optional]:
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
 -- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
--- "radius" = meters * 100
--- Added 4th argument "class": only get objects inherited from "class", provided by this parameter
-function ReturnAllNearby(radius, sort, pt, class)
+-- Removed "pt" parameter. "radius" in meters. Added parameter "class": only get objects inherited from "class", provided by this parameter
+function ReturnAllNearby(radius, sort, class)
 	-- local is faster then global
 	local table_sort = table.sort
 
-	radius = radius or 5000
-	pt = pt or GetTerrainCursor()
+	-- "radius" = meters * 100
+	radius = radius or 50
 
-	-- get all objects within radius
-	local list = MapGet(pt, radius, class)
+	-- get objects inherited from "class" within radius
+	local list = MapGet(GetTerrainCursor(), radius * 100, class)
 
 	-- sort list custom
 	if sort then
@@ -594,9 +593,9 @@ function RemoveUnsupportedBuildings(worldObjs)
 end
 
 function CaptureObjects()
-	buildings        = ReturnAllNearby(layoutSettings.radius * 100, nil, nil, "Building")
+	buildings        = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
 	RemoveUnsupportedBuildings(buildings)
-	local supplyGrid = ReturnAllNearby(layoutSettings.radius * 100, nil, nil, "BreakableSupplyGridElement")
+	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
 	cables = GetObjsByEntity(supplyGrid, "Cable")
 	tubes  = GetObjsByEntity(supplyGrid, "Tube")
 
