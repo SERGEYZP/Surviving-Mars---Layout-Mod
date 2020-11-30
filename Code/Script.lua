@@ -119,6 +119,7 @@ end
 
 -- ReloadLua() is in-game function name, don't use it!!!
 function Fixer_ReloadLua()
+	cls()
 	-- Remove all lyaouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	local bt = BuildingTemplates
 	for i, id in ipairs(GetIdList()) do
