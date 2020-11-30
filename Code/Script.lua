@@ -470,8 +470,7 @@ function CheckInputParams()
 		return true
 	end
 	
-	-- No need to check them
-	-- They will be automaticly tostring() on string concatetantion
+	-- No need to check them, they will be automaticly tostring() on string concatenation
 	-- layoutSettings.description
 	-- layoutSettings.display_name
 	
