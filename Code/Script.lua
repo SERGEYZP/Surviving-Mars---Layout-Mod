@@ -582,7 +582,6 @@ function IsIdUnique(layoutFileExist)
 end
 
 function RemoveBuildings(worldObjs, skipDome)
-	print(tostring(skipDome))
 	local string_find = string.find
 	for i = #worldObjs, 1, -1 do
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
