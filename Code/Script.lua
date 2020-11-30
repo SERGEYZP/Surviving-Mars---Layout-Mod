@@ -673,26 +673,41 @@ function LayoutCaptureWithoutDome()
 	skipDome = false
 end
 
-function WriteToFiles()
-	-- string err AsyncStringToFile(...) - by default overwrites file
-	-- "items.lua" not needed. Empty is OK. It used by in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
-	-- string err AsyncCreatePath(string pathname)
+function CreateLayoutPath()
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "Code/Layout"),
 		'"Layout" Folder Created (if not exist before)',
 		'"Layout" Folder Not Created')
+end
+
+function SaveLayoutLua()
+	-- string err AsyncStringToFile(...) - by default overwrites file
 	printDMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
 		"Layout Saved: " .. layoutFileNameNoPath,
 		"Layout Saving Failed: " .. layoutFileNameNoPath)
+end
+
+function SaveLayoutsLua()
 	printDMsgOrErr(
 		AsyncStringToFile(layoutsFileName, BuildLayoutsLua()),
 		'"Layouts.lua" Updated',
 		'"Layouts.lua" Update Failed')
+end
+
+-- function SaveMetadataLua()
 	-- printDMsgOrErr(
 		-- AsyncStringToFile(metadataFileName, BuildMetadataLua()),
 		-- '"metadata.lua" Updated',
 		-- '"metadata.lua" Update Failed')
+-- end
+
+function WriteToFiles()
+	-- "items.lua" not needed. Empty is OK. It used by in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
+	CreateLayoutPath()
+	SaveLayoutLua()
+	SaveLayoutsLua()
+	-- SaveMetadataLua()
 	if not FileExist(layoutIconFileName) then
 		printDMsgOrErr(
 			AsyncCopyFile(menuIconFileName, layoutIconFileName),
