@@ -639,7 +639,20 @@ function LayoutCapture()
 	
 	CaptureObjects()
 	if AllObjectsTablesEmpty() then
-		MsgPopup("Nothing captured!")
+		QuestionBox(
+			'Update "Layouts.lua"?',
+			function(answer)
+				if answer then
+					SaveLayoutsLua()
+					MsgPopup('"Layouts.lua" Updated')
+				else
+					MsgPopup("Nothing captured!")
+				end
+			end,
+			"Nothing captured!",
+			"Yes",
+			"No"
+		)
 		return
 	end
 	
