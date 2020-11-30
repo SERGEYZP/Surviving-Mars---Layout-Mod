@@ -705,8 +705,12 @@ end
 function CreateLayoutPath()
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "Code/Layout"),
-		'"Layout" Folder Created (if not exist before)',
-		'"Layout" Folder Not Created')
+		'"Code/Layout" Folder Created (if not exist before)',
+		'"Code/Layout" Folder Not Created')
+	printDMsgOrErr(
+		AsyncCreatePath(CurrentModPath .. "UI/Layout"),
+		'"UI/Layout" Folder Created (if not exist before)',
+		'"UI/Layout" Folder Not Created')
 end
 
 function SaveLayoutLua()
