@@ -8,7 +8,7 @@ return PlaceObj('ModDef', {
 		}),
 		PlaceObj("ModDependency", {
 			"id", "ChoGGi_CheatMenu",
-			"title", "Expanded Cheat Manu",
+			"title", "Expanded Cheat Menu",
 			"version_major", 15,
 			"version_minor", 7,
 		}),
@@ -33,7 +33,6 @@ return PlaceObj('ModDef', {
 		"Code/Layouts.lua",
 	},
 	'saved', 1604768099,
-	-- 'screenshot1', "",
 	'TagTools', true,
 	'TagOther', true,
 })

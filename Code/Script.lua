@@ -8,7 +8,7 @@
 -- On "Reload Lua" game not re-read mod's "metadata.lua", so when we add here path to new layout, it will
 	-- not load it. Only on "restart" game will read updated "metadata.lua".
 	-- So concatenate all layout files in one "Layout.lua" file, never change "metadata.lua".
-	-- "ChoGGi.ComFuncs.UpdateBuildMenu()" to update menus on the fly (if we add layout programmatically
+	-- "ChoGGi.ComFuncs.UpdateBuildMenu()" to update menus on the fly (if we add layout on runtime
 	-- via "PlaceObj(...)"), but we "Reload Lua" instead.
 
 ---- LUA STUFF ----
@@ -20,12 +20,12 @@
 -- ipairs() returns index-value pairs and is mostly used for numeric tables. Non numeric keys in an array
 	-- are ignored, while the index order is deterministic (in numeric order).
 
--- Order of function definition is essential. Must define before first useage.
+-- Order of function definition is essential. Must define before first usage.
 	-- Search "Lua Function Forward Declaration".
 
 -- Official documentation LuaFunctionDoc_AsyncIO.md.html for all "Async*()" functions in this script.
 
--- Boolean value must be tostring()-ed for concatetantion.
+-- Boolean value must be tostring()-ed for concatenation.
 
 -- Operator precedence in Lua follows the table below, from the higher to the lower priority:
 	-- ^
@@ -80,12 +80,12 @@ function MsgPopup(str)
 	-- Maximum 2 lines of text
 	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
 	-- params = {
-		-- expiration = int, -- how long to show in seconds (default 10)
-		-- size = bool, -- "false" - long text will wrap, "true" - show long text in one line (set default "expiration" to 25)
+		-- expiration = integer, -- how long to show in seconds (default 10)
+		-- size = boolean, -- "false" - long text will wrap, "true" - show long text in one line (set default "expiration" to 25)
 		-- image = string, -- icon file name
 		-- objects = obj or {}, -- click icon to view obj
 		-- callback = function,
-		-- max_width = int, -- (default 1000)
+		-- max_width = integer, -- (default 1000)
 	-- }
 	printD(str)
 	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
@@ -94,7 +94,7 @@ end
 -- ### Changed:
 -- - Debug>Reload LUA (changed how it reloads, so now it works without messing up ECM).
 -- Wait for new release with latest commits.
--- TODO ChoGGi will add this func to Expanded Cheat Menu, stay tuned
+-- TODO ChoGGi will add this function to Expanded Cheat Menu, stay tuned
 -- ECM/Lib must be enabled before all others mod
 function ChoGGi_ReloadLua()
     if not ModsLoaded then
@@ -120,7 +120,7 @@ end
 -- ReloadLua() is in-game function name, don't use it!!!
 function Fixer_ReloadLua()
 	cls()
-	-- Remove all lyaouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
+	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	local bt = BuildingTemplates
 	for i, id in ipairs(GetIdList()) do
 		bt[id] = nil
@@ -212,17 +212,17 @@ end
 
 ---- MENUS ----
 
--- Ingame table with root menus, which appears on hotkey [B]:
+-- In-game table with root menus, which appears on pressing [B]:
 -- Enhanced Cheat Menu -> Console -> ~BuildCategories
 
--- Ingame table with menu subcategories (example is [Depot] in [Storages]):
+-- In-game table with menu subcategories (example is [Depot] in [Storages]):
 -- Enhanced Cheat Menu -> Console -> ~BuildMenuSubcategories
 
 -- Empty menu is not visible. Add building, and menu will appear.
 
 -- Path to menu icon
 local menuIcon = "UI/MenuIcon.png"
--- Disaplay name of each menu
+-- Display name of each menu
 local displayName = "Layout"
 -- Add this prefix to id of original menu to create id for my menus: "Layout Infrastructure"
 local idPrefix = "Layout "
@@ -271,7 +271,7 @@ function CreateMenus()
 			-- highlight = "UI/Icons/bmc_infrastructure_shine.tga",
 			-- highlight = "UI/Icons/bmc_dome_buildings_shine.tga",
 			-- highlight = "UI/Icons/Buildings/dinner_shine.tga",
-			-- highlight or highlight_img param? From different sources, not shure.
+			-- highlight or highlight_img param? From different sources, not sure.
 		}
 		printD("Menu created: " .. id)
 	else
@@ -330,13 +330,13 @@ local default_radius = 400
 local layoutSettings = {
 	build_category = default_build_category,
 	build_pos = default_build_pos,
-	description = "Layout Desctiption",
+	description = "Layout Description",
 	display_name = "Display Name",
 	id = "SetIdForLayoutFile",
 	radius = default_radius,
 }
 
--- Forward declaration with this func not work.
+-- Forward declaration with this function not work.
 -- If make forward declaration and place function's body below "local GUIDE", "local GUIDE" will call nil "TableToString" variable
 function TableToString(inputTable)
 	local str = ""
@@ -352,14 +352,15 @@ end
 
 local GUIDE = '\n' .. [[
 ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
-[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need acces to AsyncIO functions to create lua files).
+[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
 	Install required mod, then copy "AppData\BinAssets" from "]] .. modName .. [[" folder to "%AppData%\Surviving Mars\BinAssets".
 [Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
 [Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
 	Place your buildings (recommend on empty map OR tune capture "radius" to capture only needed buildings).
 	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
-	Press [Alt-B] to instant building.
+	Mod will skip "dome_required" buildings if you capture all buildings, game will not allow to build such layout.
+	Press [Alt-B] to complete constructions.
 SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
 	Press [Ctrl-M] and measure radius of building's layout.
@@ -377,7 +378,7 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. [[] to capture all.
-	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture without "Domes".
+	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture buildings inside "Dome" without "Dome".
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
@@ -470,14 +471,14 @@ function CheckInputParams()
 		return true
 	end
 	
-	-- No need to check them, they will be automaticly tostring() on string concatenation
+	-- No need to check them, they will be automatically tostring() on string concatenation
 	-- layoutSettings.description
 	-- layoutSettings.display_name
 	
 	local id = TrimSpace(tostring(layoutSettings.id))
 	layoutSettings.id = id
 	if string.find(id, " ") or string.find(id, "\t") then
-		-- Do not resotre default value, user can edit yourself
+		-- Do not restore default value, user can edit yourself
 		MsgWait(
 			'"id" - space or tab not allowed, allowed "CamelCase" or "snake_case" notation',
 			'"id" - not allowed value: ' .. id
@@ -520,6 +521,7 @@ function SetAllFileNames()
 	-- Do not overwrite existing lua files
 	if DEBUG_LUA then
 		local dbgExt = ".txt"
+		layoutsFileName = layoutsFileName .. dbgExt
 		layoutFileName = layoutFileName .. dbgExt
 		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
 		metadataFileName = metadataFileName .. dbgExt
@@ -582,16 +584,21 @@ function IsIdUnique(layoutFileExist)
 end
 
 function RemoveBuildings(worldObjs, skipDome)
+	-- Local is faster
 	local string_find = string.find
+	local table_remove = table.remove
 	for i = #worldObjs, 1, -1 do
-		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
-		-- "Passages" not supported by in-game "LayoutConstruction"
-		local template_name = worldObjs[i].template_name
+		local dome_required = worldObjs[i].dome_required
 		local entity = worldObjs[i]:GetEntity()
+		local template_name = worldObjs[i].template_name
+		-- "Passages" not supported by in-game "LayoutConstruction", remove them
+		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
 		if template_name == "" or template_name == "Tunnel"
-			-- Skip domes, when we capture witout domes
-			or (skipDome and string_find(entity, "Dome")) then
-			table.remove(worldObjs, i)
+			-- Remove domes, when we capture without domes
+			or (skipDome and string_find(entity, "Dome"))
+			-- Remove "dome_required" buildings if we capture all buildings, game will not allow build such layout
+			or (not skipDome and dome_required) then
+			table_remove(worldObjs, i)
 		end
 	end
 end
@@ -664,7 +671,7 @@ function LayoutCapture(skipDome)
 	end
 	
 	if layoutFileExist then
-		-- function ChoGGi.ComFuncs.QuestionBox(text, func, title, ok_text, cancel_text, image, context, parent, template, thread)
+		-- function ChoGGi.ComFuncs.QuestionBox(text, function, title, ok_text, cancel_text, image, context, parent, template, thread)
 		QuestionBox(
 			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Code/Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
 			function(answer)
@@ -841,7 +848,7 @@ end
 -- Line = Hub-segment-...-segment-Hub
 -- Hub = "TubeHub" or "CableHub", segment = "Tube" or "CableTerrain"
 -- To build grid of tubes or cables we need build objects in straight line. Game engine do that by clicking mouse
-	-- on "begin position" and then clicking on	"end position". Segments builded automatically, we not needed them
+	-- on "begin position" and then clicking on	"end position". Segments built automatically, we not needed them
 	-- in result.
 -- Cable line begins on hub and ends on hub. If line has smooth turn, we assume	that turn as a hub and build two
 	-- lines which connects on turn.
@@ -897,7 +904,7 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	-- Do not save objects if begin and end position is equal (example: "Moisture Vaporator")
 	-- OR save it if we saving orphans
 	if not HexEqual(hexBegin, hexEnd) or saveOrphan then
-		-- Tubes and Cables don't have "template_name" parameter, write it explicity
+		-- Tubes and Cables don't have "template_name" parameter, write it explicitly
 		str = str .. [[
 		PlaceObj("LayoutConstructionEntry", {
 			"template", "]] .. template .. [[",
@@ -939,7 +946,7 @@ function HexObjs(worldObjs, baseHex)
 			-- 3rd bit - right
 			-- 4th bit - bottom-right
 			-- 5th bit - bottom-left
-			-- 16256 - initial value, if no connection; substract it and we will have only flags we need
+			-- 16256 - initial value, if no connection; subtract it and we will have only flags we need
 			conn = obj.conn - 16256,
 			entity = entity,
 			hex = hex,
@@ -1041,7 +1048,7 @@ function FindEndObj(hexObjs, hexObjBegin, direction)
 		if hexObjNext.hub then
 			-- Hex grid have 6 directions, so plus 3 gives opposite direction
 			-- Limit result to 6 by "%" operator (module)
-			-- Substruct 1 from direction to make it zero-based, because "%" operator is zero-based
+			-- Subtract 1 from direction to make it zero-based, because "%" operator is zero-based
 			-- Add 1 to result to make numeration starts from one.
 			local oppositeDir = ((direction - 1) + 3) % 6 + 1
 			-- Clear direction, from which we came
@@ -1221,8 +1228,8 @@ end
 
 function BuildCables(worldObjs, baseHex)
 	local str = ""
-	-- Don't have "template_name" parameter, write it explicity
-	-- Brute forse variant, ugly result in game
+	-- Don't have "template_name" parameter, write it explicitly
+	-- Brute force variant, ugly result in game
 	if not TableEmpty(worldObjs) then
 		str = str .. "\t\t-- Cables\n"
 		for i, obj in ipairs(worldObjs) do
@@ -1243,7 +1250,7 @@ end
 -- Save tube objects as lua objects, that can be used in "ZeroBrane Studio" (LUA IDE) for debugging
 function BuildTubesTesting(worldObjs, baseHex)
 	local str = ""
-	-- Brute forse variant
+	-- Brute force variant
 	if not TableEmpty(worldObjs) then
 		str = str .. "\t\t-- Tubes\n"
 		for i, obj in ipairs(worldObjs) do
@@ -1313,7 +1320,7 @@ end
 		-- }),
 		-- PlaceObj("ModDependency", {
 			-- "id", "ChoGGi_CheatMenu",
-			-- "title", "Expanded Cheat Manu",
+			-- "title", "Expanded Cheat Menu",
 			-- "version_major", 15,
 			-- "version_minor", 7,
 		-- }),

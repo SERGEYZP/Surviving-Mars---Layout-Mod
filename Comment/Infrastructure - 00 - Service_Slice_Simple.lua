@@ -43,26 +43,26 @@ function OnMsg.ClassesPostprocess()
 
 		-- Buildings
 		-- "template" -> String -> Class Template.
-		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Tools" -> "Ged Editor".
-		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Open In Ged Objects Editor".
+		--		Open: "Expanded Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Tools" -> "Ged Editor".
+		--		Open: "Expanded Cheat Menu" (F2) -> "Debug" -> "Object" -> "Open In Ged Objects Editor".
 		--		Find: "Root Object" on left screen (Selected by default) -> "Misc" on right screen -> "Class Template".
 		--		"ElectricitySwitch", "LifesupportSwitch", "passage_grid" not supported.
 		-- "pos" -> point(x,y) -> Relative position ("base point" of 3D model).
 		--		By default (if you skip parameter) it will be point(0,0).
-		--		Help: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Grids" -> "Toggle Building Grid Position" (Shift+F3).
-		--		Help: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Eye" icon ("Mark Object") on top of dialog window.
-		--		Help: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Object" -> "Hex Shape Toggle" -> "HexPeripheralShapes".
+		--		Help: "Expanded Cheat Menu" (F2) -> "Debug" -> "Grids" -> "Toggle Building Grid Position" (Shift+F3).
+		--		Help: "Expanded Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Eye" icon ("Mark Object") on top of dialog window.
+		--		Help: "Expanded Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4) -> "Object" -> "Hex Shape Toggle" -> "HexPeripheralShapes".
 		--		"Mark" object to find out "base point" of 3D model (see above). You rotate building around base point. For example "Diner" has base point not on center of 3D model.
 		--		Place all buildings. Choose in mind, where will be center of your layout. Find positions relative to center of layout.
 		-- "dir" -> Integer -> Building direction.
 		--		Possible values: 0-5. 1 click is 60 degree.
 		--		Use keys "R" (counterclockwise) and "T" (clockwise) to rotate when build.
 		--		Count: "dir" is how many times you press "T" key when build.
-		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4).
+		--		Open: "Expanded Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4).
 		--		Find: "GetAngle()" returns angle in minutes, measured clockwise from the x+ axis. Divide it by 3600 = 60degree x 60minutes.
 		-- "entity" -> String -> 3D model of building.
-		--		Use keys "[" and "]" to cycle bitween visual variants when build.
-		--		Open: "Enchanced Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4).
+		--		Use keys "[" and "]" to cycle between visual variants when build.
+		--		Open: "Expanded Cheat Menu" (F2) -> "Debug" -> "Object" -> "Examine Object" (F4).
 		--		Find: "GetEntity()" or "entity" field.
 		--		Example: "Diner" building have default "entity" "Restaurant".
 		-- "instant" -> Boolean -> Instant build.
@@ -98,7 +98,7 @@ function OnMsg.ClassesPostprocess()
 		-- Cables
 		-- "pos" -> point(x,y) -> Start position
 		-- "cur_pos1" -> point(x,y) -> Next cursor position (build "line" of cables)
-		-- "cur_pos2" -> point(x,y) -> Next cursor position (build second "line", thant continues first)
+		-- "cur_pos2" -> point(x,y) -> Next cursor position (build second "line", that continues first)
 		-- PlaceObj("LayoutConstructionEntry", {
 			-- "template", "electricity_grid",
 			-- "pos", point(-1, 3),
