@@ -161,7 +161,7 @@ function CreateShortcuts()
 	Actions[#Actions + 1] = {
 		ActionName = "Layout Capture",
 		ActionId = "Layout.Capture",
-		OnAction = LayoutCapture,
+		OnAction = LayoutCaptureAll,
 		ActionShortcut = ShortcutCapture,
 		ActionBindable = true,
 	}
@@ -319,7 +319,6 @@ end
 
 ---- MAIN CODE ----
 
-local skipDome = false
 local buildings, cables, tubes
 
 local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
@@ -377,7 +376,8 @@ SET PARAMS:
 		"radius" ("nil" or positive number [to infinity and beyond]) capture radius in meters.
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
-	Press []] .. ShortcutCapture .. ']\n' .. [[
+	Press []] .. ShortcutCapture .. [[] to capture all.
+	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture without "Domes".
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
@@ -582,7 +582,9 @@ function IsIdUnique(layoutFileExist)
 	return true
 end
 
-function RemoveBuildings(worldObjs)
+function RemoveBuildings(worldObjs, skipDome)
+	print(tostring(skipDome))
+	local string_find = string.find
 	for i = #worldObjs, 1, -1 do
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
 		-- "Passages" not supported by in-game "LayoutConstruction"
@@ -590,15 +592,15 @@ function RemoveBuildings(worldObjs)
 		local entity = worldObjs[i]:GetEntity()
 		if template_name == "" or template_name == "Tunnel"
 			-- Skip domes, when we capture witout domes
-			or (skipDome and string.find(entity, "Dome")) then
+			or (skipDome and string_find(entity, "Dome")) then
 			table.remove(worldObjs, i)
 		end
 	end
 end
 
-function CaptureObjects()
+function CaptureObjects(skipDome)
 	buildings        = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
-	RemoveBuildings(buildings)
+	RemoveBuildings(buildings, skipDome)
 	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
 	cables = GetObjsByEntity(supplyGrid, "Cable")
 	tubes  = GetObjsByEntity(supplyGrid, "Tube")
@@ -628,7 +630,7 @@ function AllObjectsTablesEmpty()
 	end
 end
 
-function LayoutCapture()
+function LayoutCapture(skipDome)
 	printD(GetDate())
 	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
 
@@ -644,7 +646,7 @@ function LayoutCapture()
 		return
 	end
 	
-	CaptureObjects()
+	CaptureObjects(skipDome)
 	if AllObjectsTablesEmpty() then
 		QuestionBox(
 			'Update "Layouts.lua"?',
@@ -687,10 +689,12 @@ function LayoutCapture()
 	end
 end
 
+function LayoutCaptureAll()
+	LayoutCapture(false)
+end
+
 function LayoutCaptureWithoutDome()
-	skipDome = true
-	LayoutCapture()
-	skipDome = false
+	LayoutCapture(true)
 end
 
 function CreateLayoutPath()
