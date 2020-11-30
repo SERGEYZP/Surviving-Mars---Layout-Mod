@@ -360,7 +360,7 @@ ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 [Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
 [Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
-	Place your buildings (recommend on empty map).
+	Place your buildings (recommend on empty map OR tune capture "radius" to capture only needed buildings).
 	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
 	Press [Alt-B] to instant building.
 SET PARAMS:
@@ -372,11 +372,11 @@ SET PARAMS:
 		value will not be updated after double click, but will be saved anyway!
 	Set parameters in "Edit Object" window:
 		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
-		"build_pos" (number from 1 to 99, can be duplicated) position in build menu.
+		"build_pos" (number from 0 to 99, can be duplicated) position in build menu.
 		"description", "display_name" - as you like.
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
 			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
-		"radius" (nil or positive number [to infinity and beyond]) capture radius in meters.
+		"radius" ("nil" or positive number [to infinity and beyond]) capture radius in meters.
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. ']\n' .. [[
@@ -384,9 +384,12 @@ APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
 WHAT TO DO [Optional]:
-	Press []] .. ShortcutTerrainTextureChange .. [[] and make screenshot.
+	Press []] .. ShortcutTerrainTextureChange .. [[], it will change terrain texture to green, make screenshot.
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
-	Icon template: "...\Surviving Mars Green Planet\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
+	Icon template: "Game Folder\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
+I WANT DELETE LAYOUT:
+	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder, then capture layout on empty space.
+	In dialog window choose "Yes" to update "Layouts.lua". Look [APPLY] above.
 
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
