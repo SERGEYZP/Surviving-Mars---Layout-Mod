@@ -119,7 +119,7 @@ end
 
 -- ReloadLua() is in-game function name, don't use it!!!
 function Fixer_ReloadLua()
-	-- Remove all lyaouts from game before reload lua, that we can manually edit layout in text editor and see resulst after reload
+	-- Remove all lyaouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	local bt = BuildingTemplates
 	for i, id in ipairs(GetIdList()) do
 		bt[id] = nil
@@ -360,7 +360,7 @@ ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 [Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
 	Place your buildings (recommend on empty map).
-	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but I skip them.
+	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
 	Press [Alt-B] to instant building.
 SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
@@ -382,7 +382,7 @@ CAPTURE:
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
-WHAT TO DO:
+WHAT TO DO [Optional]:
 	Press []] .. ShortcutTerrainTextureChange .. [[] and make screenshot.
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
 	Icon template: "...\Surviving Mars Green Planet\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
