@@ -605,6 +605,9 @@ function CaptureObjects()
 
 	local numCapturedObjects = #buildings + #cables + #tubes
 	printD("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
+	if DEBUG_EXAMINE then
+		OpenExamine(buildings)
+	end
 end
 
 function TableEmpty(table)
