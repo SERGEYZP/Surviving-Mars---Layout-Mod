@@ -143,12 +143,12 @@ end
 ---- SHORTCUTS ----
 
 local key = "Insert"
-local ShortcutCapture              = "Ctrl-" .. key
-local ShortcutCaptureWithoutDome   = "Ctrl-Shift-" .. key
-local ShortcutSetParams            = "Shift-" .. key
-local ShortcutShowInfo             = "Alt-" .. key
-local ShortcutReloadLua            = key
-local ShortcutTerrainTextureChange = "Ctrl-Alt-Shift-" .. key
+local ShortcutCapture              = "" .. key
+local ShortcutCaptureWithoutDome   = "Ctrl-" .. key
+local ShortcutSetParams            = "Alt-" .. key
+local ShortcutShowInfo             = "Shift-" .. key
+local ShortcutReloadLua            = "Ctrl-Shift-" .. key
+local ShortcutPhotoMode            = "Ctrl-Alt-Shift-" .. key
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
@@ -191,22 +191,20 @@ function CreateShortcuts()
 	}
 
 	Actions[#Actions + 1] = {
-		ActionName = "Layout Set Green Terrain",
-		ActionId = "Layout.Set.Green.Terrain",
-		OnAction = TerrainTextureChange,
-		ActionShortcut = ShortcutTerrainTextureChange,
+		ActionName = "Layout Reload Lua",
+		ActionId = "Layout.Reload.Lua",
+		OnAction = Fixer_ReloadLua,
+		ActionShortcut = ShortcutReloadLua,
 		ActionBindable = true,
 	}
-	
-	-- if DEBUG then
-		Actions[#Actions + 1] = {
-			ActionName = "Layout Reload Lua",
-			ActionId = "Layout.Reload.Lua",
-			OnAction = Fixer_ReloadLua,
-			ActionShortcut = ShortcutReloadLua,
-			ActionBindable = true,
-		}
-	-- end
+
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Set Green Terrain",
+		ActionId = "Layout.Set.Green.Terrain",
+		OnAction = PhotoMode,
+		ActionShortcut = ShortcutPhotoMode,
+		ActionBindable = true,
+	}
 end
 
 
@@ -383,10 +381,13 @@ CAPTURE:
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
-WHAT TO DO [Optional]:
-	Press []] .. ShortcutTerrainTextureChange .. [[], it will change terrain texture to green, make screenshot.
+PHOTO MODE [Optional]:
+	To reset changes made below, load savegame.
+	Press []] .. ShortcutPhotoMode .. [[], it will change terrain texture to green, brighter light, set game on pause.
+	Press [Ctrl-Alt-I] to hide UI, [Ctrl-Alt-U] to toggle signs.
+	Make screenshot [PrintScreen]. It will be saved in "%AppData%\Surviving Mars"
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
-	Icon template: "Game Folder\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
+	Icon template: "Surviving Mars\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
 I WANT DELETE LAYOUT:
 	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder, then capture layout on empty space.
 	In dialog window choose "Yes" to update "Layouts.lua". Look [APPLY] above.
@@ -581,7 +582,7 @@ function IsIdUnique(layoutFileExist)
 	return true
 end
 
-function RemoveUnsupportedBuildings(worldObjs)
+function RemoveBuildings(worldObjs)
 	for i = #worldObjs, 1, -1 do
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
 		-- "Passages" not supported by in-game "LayoutConstruction"
@@ -597,7 +598,7 @@ end
 
 function CaptureObjects()
 	buildings        = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
-	RemoveUnsupportedBuildings(buildings)
+	RemoveBuildings(buildings)
 	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
 	cables = GetObjsByEntity(supplyGrid, "Cable")
 	tubes  = GetObjsByEntity(supplyGrid, "Tube")
@@ -1353,14 +1354,24 @@ function BuildLayoutsLua()
 	return str
 end
 
--- Copy-Paste from ChoGGi.MenuFuncs.TerrainTextureChange()
-function TerrainTextureChange()
-	-- Set green color for terrain to make screenshots
-	local choice = {
-		text = "Prefab_Green",
-		value = 27,
-	}
 
+
+
+---- Photo Mode ----
+
+function PhotoMode()
+	-- Pause game
+	UICity:SetGameSpeed(0)
+	UISpeedState = "pause"
+	-- Set bright light
+	SetLightmodelOverride(1)
+	SetLightmodel(1, "ArtPreview")
+	-- Set green color for terrain to make screenshot
+	TerrainTextureChange({ text = "Prefab_Green", value = 27, })
+end
+
+-- Copy-Paste from ChoGGi.MenuFuncs.TerrainTextureChange()
+function TerrainTextureChange(choice)
 	local function RestoreSkins(label, temp_skin, idx)
 		for i = 1, #(label or "") do
 			local o = label[i]
