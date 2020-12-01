@@ -41,7 +41,7 @@
 
 -- Change "idLayoutPrefix" if you change mod name, set "title" in "metadala.lua", change function "printD()"
 local modName = "Layout Capture Mod"
-local idLayoutPrefix = "LCM_" -- (L)ayout (C)apture (M)od
+local idLayoutPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 
 ---- DEBUG ----
 
