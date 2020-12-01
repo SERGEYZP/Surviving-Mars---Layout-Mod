@@ -319,6 +319,7 @@ end
 
 ---- MAIN CODE ----
 
+local GUIDE
 local buildings, cables, tubes
 
 local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
@@ -349,51 +350,6 @@ function TableToString(inputTable)
 	end
 	return str
 end
-
-local GUIDE = '\n' .. [[
-ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
-[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
-	Install required mod, then copy "AppData\BinAssets" from "]] .. modName .. [[" folder to "%AppData%\Surviving Mars\BinAssets".
-[Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
-[Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
-BUILD:
-	Place your buildings (recommend on empty map OR tune capture "radius" to capture only needed buildings).
-	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
-	Mod will skip "dome_required" buildings if you capture all buildings, game will not allow to build such layout.
-	Press [Alt-B] to complete constructions.
-SET PARAMS:
-	Place your mouse cursor in the center of building's layout.
-	Press [Ctrl-M] and measure radius of building's layout.
-	Press []] .. ShortcutSetParams .. ']\n' .. [[
-	Two windows will appear: "Choose Building Menu", "Edit Object".
-	Choose building menu by double click, or ignore it (previous selected menu category will be used). Note: "building_category"
-		value will not be updated after double click, but will be saved anyway!
-	Set parameters in "Edit Object" window:
-		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
-		"build_pos" (number from 0 to 99, can be duplicated) position in build menu.
-		"description", "display_name" - as you like.
-		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
-			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
-		"radius" ("nil" or positive number [to infinity and beyond]) capture radius in meters.
-	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
-CAPTURE:
-	Press []] .. ShortcutCapture .. [[] to capture all.
-	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture buildings inside "Dome" without "Dome".
-APPLY:
-	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
-	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
-PHOTO MODE [Optional]:
-	To reset changes made below, load savegame.
-	Press []] .. ShortcutPhotoMode .. [[], it will change terrain texture to green, brighter light, set game on pause.
-	Press [Ctrl-Alt-I] to hide UI, [Ctrl-Alt-U] to toggle signs.
-	Make screenshot [PrintScreen]. It will be saved in "%AppData%\Surviving Mars"
-	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
-	Icon template: "Surviving Mars\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
-I WANT DELETE LAYOUT:
-	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder, then capture layout on empty space.
-	In dialog window choose "Yes" to update "Layouts.lua". Look [APPLY] above.
-
-"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
 -- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
@@ -1490,3 +1446,53 @@ end
 	-- -- printD("CityStart")
 	-- -- CreateMenus()
 -- end
+
+
+
+
+---- GUIDE ----
+
+GUIDE = '\n' .. [[
+ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
+[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
+	Install required mod, then copy "AppData\BinAssets" from "]] .. modName .. [[" folder to "%AppData%\Surviving Mars\BinAssets".
+[Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
+[Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
+BUILD:
+	Place your buildings (recommend on empty map OR tune capture "radius" to capture only needed buildings).
+	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
+	Mod will skip "dome_required" buildings if you capture all buildings, game will not allow to build such layout.
+	Press [Alt-B] to complete constructions.
+SET PARAMS:
+	Place your mouse cursor in the center of building's layout.
+	Press [Ctrl-M] and measure radius of building's layout.
+	Press []] .. ShortcutSetParams .. ']\n' .. [[
+	Two windows will appear: "Choose Building Menu", "Edit Object".
+	Choose building menu by double click, or ignore it (previous selected menu category will be used). Note: "building_category"
+		value will not be updated after double click, but will be saved anyway!
+	Set parameters in "Edit Object" window:
+		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
+		"build_pos" (number from 0 to 99, can be duplicated) position in build menu.
+		"description", "display_name" - as you like.
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
+			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
+		"radius" ("nil" or positive number [to infinity and beyond]) capture radius in meters.
+	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
+CAPTURE:
+	Press []] .. ShortcutCapture .. [[] to capture all.
+	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture buildings inside "Dome" without "Dome".
+APPLY:
+	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
+	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
+PHOTO MODE [Optional]:
+	To reset changes made below, load savegame.
+	Press []] .. ShortcutPhotoMode .. [[], it will change terrain texture to green, brighter light, set game on pause.
+	Press [Ctrl-Alt-I] to hide UI, [Ctrl-Alt-U] to toggle signs.
+	Make screenshot [PrintScreen]. It will be saved in "%AppData%\Surviving Mars"
+	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
+	Icon template: "Surviving Mars\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
+I WANT DELETE LAYOUT:
+	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder, then capture layout on empty space.
+	In dialog window choose "Yes" to update "Layouts.lua". Look [APPLY] above.
+
+"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
