@@ -140,10 +140,10 @@ function Fixer_ReloadLua()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
 	CreateRealTimeThread(function()
-		MsgPopup("----BEGIN-RELOAD-LUA----")
+		MsgPopup("--------BEGIN-RELOAD-LUA--------")
 		Sleep(1000)
 		ChoGGi_ReloadLua()
-		MsgPopup("----DONE-RELOAD-LUA----")
+		MsgPopup("--------DONE-RELOAD-LUA---------")
 	end)
 end
 
