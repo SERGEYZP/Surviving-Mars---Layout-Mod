@@ -40,7 +40,7 @@
 
 
 
-local modName = "Layout Mod"
+local modName = "Layout Capture Mod"
 
 ---- DEBUG ----
 
@@ -58,7 +58,7 @@ end
 function printD(str)
 	if DEBUG then
 		printL(str)
-		print("[LM] " .. str)
+		print("[LCM] " .. str)
 	end
 end
 

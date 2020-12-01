@@ -13,7 +13,7 @@ return PlaceObj('ModDef', {
 			"version_minor", 7,
 		}),
 	},
-	'title', "Layout Mod",
+	'title', "Layout Capture Mod",
 	'description', "Capture and save building's layout.",
 	'image', "ModImage.png",
 	'last_changes', "Initial release.",
