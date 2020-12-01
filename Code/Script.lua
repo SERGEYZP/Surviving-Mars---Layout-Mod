@@ -1512,3 +1512,31 @@ I WANT DELETE LAYOUT:
 	In dialog window choose "Yes" to update "Layouts.lua". Look [APPLY] above.
 
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
+
+
+
+
+---- StdDialogs.lua ----
+
+-- CommonLua\UI\StdDialogs.lua
+-- local text
+-- function WaitInputText(caption, text)
+-- text = WaitInputText('Set "id":', "ChangeMe")
+-- print(text)
+
+-- function WaitListChoice(items, caption, parent, start_selection, max_lines_to_show)
+-- text = WaitListChoice({"item1","item2","item3","item4"}, "caption")
+-- print(text)
+
+-- function WaitMessage(parent, caption, text, ok_text, obj) - Wait variant of CreateMessageBox()
+-- WaitMessage(nil, "caption", "text")
+
+-- function CreateMessageBox(caption, text, ok_text, parent, obj)
+-- CreateMessageBox("caption", "text")
+
+-- function WaitQuestion(parent, caption, text, ok_text, cancel_text, obj)
+-- text = WaitQuestion(nil, "caption", "text")
+-- print(text)
+
+-- function CloseAllMessagesAndQuestions()
+-- function AreMessageBoxesOpen()
