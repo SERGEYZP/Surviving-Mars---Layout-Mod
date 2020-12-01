@@ -1480,7 +1480,7 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCapture .. [[] to capture all.
-	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture buildings inside "Dome" without "Dome".
+	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture buildings inside "Dome" (it just skips "Dome").
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
