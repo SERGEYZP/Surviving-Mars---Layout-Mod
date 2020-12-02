@@ -717,8 +717,10 @@ function SaveLayoutsLua()
 end
 
 function UpdateLayoutsLua()
+	printD(GetDate())
 	SetAllFileNames()
 	SaveLayoutsLua()
+	MsgPopup('"Layouts.lua" updated')
 end
 
 -- function SaveMetadataLua()
