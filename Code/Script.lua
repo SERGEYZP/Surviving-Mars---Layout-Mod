@@ -658,6 +658,8 @@ function LayoutCapture(captureIndoor)
 					-- I commented here, because I do it in Fixer_ReloadLua()
 					-- BuildingTemplates[idLayoutPrefix .. layoutSettings.id] = nil
 					WriteToFiles()
+				else
+					MsgPopup("Capture canceled")
 				end
 			end,
 			"Overwrite file?",
