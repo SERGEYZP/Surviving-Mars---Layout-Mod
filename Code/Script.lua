@@ -139,6 +139,8 @@ function Fixer_ReloadLua()
 	cls()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
+	-- Run in real time thread to show MsgPopup() properly!
+	-- Else it will be showed after ChoGGi_ReloadLua() finished. No sense.
 	CreateRealTimeThread(function()
 		MsgPopup("--------BEGIN-RELOAD-LUA--------")
 		Sleep(1000)
