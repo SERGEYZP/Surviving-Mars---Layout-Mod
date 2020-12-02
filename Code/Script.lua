@@ -58,6 +58,7 @@ end
 
 function printD(str)
 	if DEBUG then
+		str = str:gsub("\n", "\n\t")
 		printL(str)
 		print("[LCM] " .. str)
 	end
@@ -88,7 +89,7 @@ function MsgPopup(str)
 		-- callback = function,
 		-- max_width = integer, -- (default 1000)
 	-- }
-	printD(str)
+	printD("MP: " .. str)
 	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
 end
 
@@ -169,7 +170,6 @@ local ShortcutPhotoMode            = "Ctrl-Alt-Shift-" .. key
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
-	printD(GetDate())
 	printD("CreateShortcuts()")
 	local Actions = ChoGGi.Temp.Actions
 	
@@ -600,7 +600,7 @@ function CaptureObjects(captureIndoor)
 	end
 
 	local numCapturedObjects = #buildings + #cables + #tubes
-	printD("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
+	printD("Captured objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
 	if DEBUG_EXAMINE then
 		OpenExamine(buildings)
 	end
@@ -648,7 +648,7 @@ function LayoutCapture(captureIndoor)
 	if layoutFileExist then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, function, title, ok_text, cancel_text, image, context, parent, template, thread)
 		QuestionBox(
-			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Code/Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
+			'Layout file with this name already exist in "Layout" folder:\n\t"' .. layoutFileNameNoPath .. '"\nPath to "Layout" folder:\n\t"' .. CurrentModPath .. 'Code/Layout"',
 			function(answer)
 				if answer then
 					-- If we reload lua, our old layout object still be present in building's table.
@@ -674,16 +674,16 @@ end
 function LayoutCaptureOutdoor()
 	-- Run in real time thread to show MsgPopup() properly!
 	-- Else it will be showed, after LayoutCapture() finished. No sense.
+	printD(GetDate())
 	CreateRealTimeThread(function()
-		printD(GetDate())
 		MsgPopup("Capture outdoor, please wait...")
 		LayoutCapture(false)
 	end)
 end
 
 function LayoutCaptureIndoor()
+	printD(GetDate())
 	CreateRealTimeThread(function()
-		printD(GetDate())
 		MsgPopup("Capture indoor, please wait...")
 		LayoutCapture(true)
 	end)
@@ -692,39 +692,41 @@ end
 function CreateLayoutPath()
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "Code/Layout"),
-		'"Code/Layout" Folder Created (if not exist before)',
-		'"Code/Layout" Folder Not Created')
+		'"Code/Layout" Folder created (if not exist before)',
+		'"Code/Layout" Folder not created')
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "UI/Layout"),
-		'"UI/Layout" Folder Created (if not exist before)',
-		'"UI/Layout" Folder Not Created')
+		'"UI/Layout" Folder created (if not exist before)',
+		'"UI/Layout" Folder not created')
 end
 
 function SaveLayoutLua()
 	-- string err AsyncStringToFile(...) - by default overwrites file
 	printDMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
-		"Layout Saved: " .. layoutFileNameNoPath,
-		"Layout Saving Failed: " .. layoutFileNameNoPath)
+		"Layout saved: " .. layoutFileNameNoPath,
+		"Layout saving failed: " .. layoutFileNameNoPath)
 end
 
 function SaveLayoutsLua()
 	printDMsgOrErr(
 		AsyncStringToFile(layoutsFileName, BuildLayoutsLua()),
-		'"Layouts.lua" Updated',
-		'"Layouts.lua" Update Failed')
+		'"Layouts.lua" updated',
+		'"Layouts.lua" update failed')
 end
 
 function UpdateLayoutsLua()
+	printD(GetDate())
 	SetAllFileNames()
 	SaveLayoutsLua()
+	MsgPopup('"Layouts.lua" updated')
 end
 
 -- function SaveMetadataLua()
 	-- printDMsgOrErr(
 		-- AsyncStringToFile(metadataFileName, BuildMetadataLua()),
-		-- '"metadata.lua" Updated',
-		-- '"metadata.lua" Update Failed')
+		-- '"metadata.lua" updated',
+		-- '"metadata.lua" update failed')
 -- end
 
 function WriteToFiles()
@@ -736,17 +738,17 @@ function WriteToFiles()
 	if not FileExist(layoutIconFileName) then
 		printDMsgOrErr(
 			AsyncCopyFile(menuIconFileName, layoutIconFileName),
-			"Icon Copied: " .. layoutSettings.id .. ".png",
-			"Icon Copy Failed: " .. layoutSettings.id .. ".png")
+			"Icon copied: " .. layoutSettings.id .. ".png",
+			"Icon copy failed: " .. layoutSettings.id .. ".png")
 	else
-		local str = "Icon Not Copied (already exist): " .. layoutSettings.id .. ".png"
+		local str = "Icon not copied (already exist): " .. layoutSettings.id .. ".png"
 		printD(str)
 	end
 	if GlobalError == true then
 		GlobalError = false
 		MsgPopup("Something went wrong :(")
 	else
-		MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
+		MsgPopup("Layout saved: " .. layoutFileNameNoPath)
 	end
 end
 
@@ -788,8 +790,17 @@ function LayoutSetParams()
 		CloseDialogsECM()
 	else
 		IsDialogWindowOpen_Params = true
-		OpenInObjectEditorDlg(layoutSettings)
-		SetBuildCategory()
+		CreateRealTimeThread(function()
+			layoutSettings.id           = WaitInputText('Set "id":', layoutSettings.id)
+			layoutSettings.display_name = WaitInputText('Set "Display name":', layoutSettings.display_name)
+			layoutSettings.description  = WaitInputText('Set "Description":', layoutSettings.description)
+			layoutSettings.build_pos    = WaitInputText('Set "Position in menu":', tostring(layoutSettings.build_pos))
+			layoutSettings.radius       = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
+			if DEBUG then
+				OpenInObjectEditorDlg(layoutSettings)
+			end
+			SetBuildCategory()
+		end)
 	end
 end
 
@@ -895,7 +906,7 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	elseif IsTubes(type) then
 		template = "life_support_grid"
 	else
-		printD('HexObjLineAsStr(): Wrong "type" argument: ' .. type)
+		printD('HexObjLineAsStr(): wrong "type" argument: ' .. type)
 		return ""
 	end
 	
@@ -1148,7 +1159,7 @@ function BuildGrid(worldObjs, baseHex, type)
 		elseif IsTubes(type) then
 			comment = "\t\t-- Tubes\n"
 		else
-			printD('BuildGrid(): Wrong "type" argument: ' .. type)
+			printD('BuildGrid(): wrong "type" argument: ' .. type)
 			return ""
 		end
 		table.insert(strTbl, comment)
@@ -1539,6 +1550,7 @@ PHOTO MODE [Optional]:
 	Icon template: "Surviving Mars\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
 I WANT DELETE LAYOUT:
 	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
+	Delete icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
 	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua"
 
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
