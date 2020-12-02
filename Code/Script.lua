@@ -564,17 +564,17 @@ end
 
 function RemoveBuildings(worldObjs, skipDome)
 	-- Local is faster
-	local string_find = string.find
 	local table_remove = table.remove
 	for i = #worldObjs, 1, -1 do
-		local dome_required = worldObjs[i].dome_required
-		local entity = worldObjs[i]:GetEntity()
-		local template_name = worldObjs[i].template_name
+		local entity         = worldObjs[i]:GetEntity()
+		local dome_forbidden = worldObjs[i].dome_forbidden
+		local dome_required  = worldObjs[i].dome_required
+		local template_name  = worldObjs[i].template_name
 		-- "Passages" not supported by in-game "LayoutConstruction", remove them
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
 		if template_name == "" or template_name == "Tunnel"
 			-- Remove domes, when we capture without domes
-			or (skipDome and string_find(entity, "Dome"))
+			or (skipDome and dome_forbidden)
 			-- Remove "dome_required" buildings if we capture all buildings, game will not allow build such layout
 			or (not skipDome and dome_required) then
 			table_remove(worldObjs, i)
