@@ -1377,14 +1377,23 @@ end
 ---- Photo Mode ----
 
 function PhotoMode()
-	-- Pause game
-	UICity:SetGameSpeed(0)
-	UISpeedState = "pause"
-	-- Set bright light
-	SetLightmodelOverride(1)
-	SetLightmodel(1, "ArtPreview")
-	-- Set green color for terrain to make screenshot
-	TerrainTextureChange({ text = "Prefab_Green", value = 27, })
+	ChoGGi.ComFuncs.QuestionBox(
+			"No way back! To restore view, you must reload game.",
+			function(answer)
+				if answer then
+					MsgPopup("PhotoMode")
+					-- Pause game
+					UICity:SetGameSpeed(0)
+					UISpeedState = "pause"
+					-- Set bright light
+					SetLightmodelOverride(1)
+					SetLightmodel(1, "ArtPreview")
+					-- Set green color for terrain to make screenshot
+					TerrainTextureChange({ text = "Prefab_Green", value = 27, })
+				end
+			end,
+			'Enable "Photo Mode"?'
+		)
 end
 
 -- Copy-Paste from ChoGGi.MenuFuncs.TerrainTextureChange()
