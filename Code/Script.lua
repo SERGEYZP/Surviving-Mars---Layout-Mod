@@ -639,19 +639,7 @@ function LayoutCapture(captureIndoor)
 	
 	CaptureObjects(captureIndoor)
 	if AllObjectsTablesEmpty() then
-		QuestionBox(
-			'Update "Layouts.lua"?',
-			function(answer)
-				if answer then
-					SaveLayoutsLua()
-				else
-					MsgPopup("Nothing captured!")
-				end
-			end,
-			"Nothing captured!",
-			"Yes",
-			"No"
-		)
+		MsgPopup("Nothing captured!")
 		return
 	end
 	
