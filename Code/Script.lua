@@ -1502,17 +1502,19 @@ end
 ---- GUIDE ----
 
 GUIDE = '\n' .. [[
-Layout Capture Outdoor = []] .. ShortcutCaptureOutdoor .. [[]
-Layout Capture Indoor = []] .. ShortcutCaptureIndoor .. [[]
-Layout Set Params = []] .. ShortcutSetParams .. [[]
-Layout Show Info = []] .. ShortcutShowInfo .. [[]
-Layout Reload Lua = []] .. ShortcutReloadLua .. [[]
-Layout Photo Mode = []] .. ShortcutPhotoMode .. [[]
-ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
-[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
-	Install required mod, then copy "AppData\BinAssets" from "]] .. modName .. [[" folder to "%AppData%\Surviving Mars\BinAssets".
-[Optional] ChoGGi's "Enhanced Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
-[Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
+SHORTCUTS:
+	Layout Capture Outdoor = []] .. ShortcutCaptureOutdoor .. [[]
+	Layout Capture Indoor = []] .. ShortcutCaptureIndoor .. [[]
+	Layout Set Params = []] .. ShortcutSetParams .. [[]
+	Layout Show Info = []] .. ShortcutShowInfo .. [[]
+	Layout Reload Lua = []] .. ShortcutReloadLua .. [[]
+	Layout Photo Mode = []] .. ShortcutPhotoMode .. [[]
+INSTALL:
+	ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
+	[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
+		Install required mod, then copy "AppData\BinAssets" from "]] .. modName .. [[" folder to "%AppData%\Surviving Mars\BinAssets".
+	[Optional] ChoGGi's "Expanded Cheat Menu" [F2] -> "Cheats" -> "Toggle Unlock All Buildings" -> Double click "Unlock"
+	[Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
 	Place your buildings (recommend on empty map OR tune capture "radius" to capture only needed buildings).
 	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
