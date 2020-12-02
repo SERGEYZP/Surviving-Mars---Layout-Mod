@@ -1529,7 +1529,7 @@ CAPTURE:
 	Press []] .. ShortcutCaptureIndoor .. [[] to capture indoor buildings (skip "dome_forbidden").
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
-	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
+	Or reload lua (not responsible for potential mess if you want continue play). Press []] .. ShortcutReloadLua .. [[].
 PHOTO MODE [Optional]:
 	To reset changes made below, load savegame.
 	Press []] .. ShortcutPhotoMode .. [[], it will change terrain texture to green, brighter light, set game on pause.
