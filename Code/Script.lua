@@ -625,8 +625,6 @@ function AllObjectsTablesEmpty()
 end
 
 function LayoutCapture(captureIndoor)
-	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
-
 	-- After this all params in layoutSettings are correct
 	if CheckInputParams() then
 		return
@@ -647,7 +645,7 @@ function LayoutCapture(captureIndoor)
 	
 	if layoutFileExist then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, function, title, ok_text, cancel_text, image, context, parent, template, thread)
-		QuestionBox(
+		ChoGGi.ComFuncs.QuestionBox(
 			'Layout file with this name already exist in "Layout" folder:\n\t"' .. layoutFileNameNoPath .. '"\nPath to "Layout" folder:\n\t"' .. CurrentModPath .. 'Code/Layout"',
 			function(answer)
 				if answer then
@@ -662,9 +660,7 @@ function LayoutCapture(captureIndoor)
 					MsgPopup("Capture canceled")
 				end
 			end,
-			"Overwrite file?",
-			"Yes",
-			"Cancel Layout Capture"
+			"Overwrite file?"
 		)
 	else
 		WriteToFiles()
