@@ -628,7 +628,6 @@ function LayoutCapture(skipDome)
 			function(answer)
 				if answer then
 					SaveLayoutsLua()
-					MsgPopup('"Layouts.lua" Updated')
 				else
 					MsgPopup("Nothing captured!")
 				end
