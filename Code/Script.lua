@@ -1495,6 +1495,12 @@ end
 ---- GUIDE ----
 
 GUIDE = '\n' .. [[
+Layout Capture Outdoor = []] .. ShortcutCaptureOutdoor .. [[]
+Layout Capture Indoor = []] .. ShortcutCaptureIndoor .. [[]
+Layout Set Params = []] .. ShortcutSetParams .. [[]
+Layout Show Info = []] .. ShortcutShowInfo .. [[]
+Layout Reload Lua = []] .. ShortcutReloadLua .. [[]
+Layout Photo Mode = []] .. ShortcutPhotoMode .. [[]
 ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 [REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
 	Install required mod, then copy "AppData\BinAssets" from "]] .. modName .. [[" folder to "%AppData%\Surviving Mars\BinAssets".
@@ -1521,8 +1527,8 @@ SET PARAMS:
 		"radius" ("nil" or positive number [to infinity and beyond]) capture radius in meters.
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
-	Press []] .. ShortcutCapture .. [[] to capture all.
-	Press []] .. ShortcutCaptureWithoutDome .. [[] to capture buildings inside "Dome" (it just skips "Dome").
+	Press []] .. ShortcutCaptureOutdoor .. [[] to capture outdoor buildings (be aware to capture buildings required be near dome or resource deposit).
+	Press []] .. ShortcutCaptureIndoor .. [[] to capture indoor buildings (skip "dome_forbidden").
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not reliable). Press []] .. ShortcutReloadLua .. [[].
@@ -1534,8 +1540,8 @@ PHOTO MODE [Optional]:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
 	Icon template: "Surviving Mars\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
 I WANT DELETE LAYOUT:
-	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder, then capture layout on empty space.
-	In dialog window choose "Yes" to update "Layouts.lua". Look [APPLY] above.
+	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
+	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua"
 
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
