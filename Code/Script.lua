@@ -562,7 +562,7 @@ function IsIdUnique(layoutFileExist)
 	return true
 end
 
-function RemoveBuildings(worldObjs, skipDome)
+function RemoveBuildings(worldObjs, captureIndoor)
 	-- Local is faster
 	local table_remove = table.remove
 	for i = #worldObjs, 1, -1 do
@@ -573,18 +573,18 @@ function RemoveBuildings(worldObjs, skipDome)
 		-- "Passages" not supported by in-game "LayoutConstruction", remove them
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
 		if template_name == "" or template_name == "Tunnel"
-			-- Remove domes, when we capture without domes
-			or (skipDome and dome_forbidden)
-			-- Remove "dome_required" buildings if we capture all buildings, game will not allow build such layout
-			or (not skipDome and dome_required) then
+			-- Remove "dome_forbidden", when we capture indoor buildings
+			or (captureIndoor and dome_forbidden)
+			-- Remove "dome_required" buildings if we capture outdoor buildings, game will not allow build such layout
+			or (not captureIndoor and dome_required) then
 			table_remove(worldObjs, i)
 		end
 	end
 end
 
-function CaptureObjects(skipDome)
+function CaptureObjects(captureIndoor)
 	buildings        = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
-	RemoveBuildings(buildings, skipDome)
+	RemoveBuildings(buildings, captureIndoor)
 	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
 	cables = GetObjsByEntity(supplyGrid, "Cable")
 	tubes  = GetObjsByEntity(supplyGrid, "Tube")
@@ -614,7 +614,7 @@ function AllObjectsTablesEmpty()
 	end
 end
 
-function LayoutCapture(skipDome)
+function LayoutCapture(captureIndoor)
 	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
 
 	-- After this all params in layoutSettings are correct
@@ -629,7 +629,7 @@ function LayoutCapture(skipDome)
 		return
 	end
 	
-	CaptureObjects(skipDome)
+	CaptureObjects(captureIndoor)
 	if AllObjectsTablesEmpty() then
 		QuestionBox(
 			'Update "Layouts.lua"?',
