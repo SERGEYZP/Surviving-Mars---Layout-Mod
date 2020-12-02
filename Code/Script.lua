@@ -563,7 +563,7 @@ function IsIdUnique(layoutFileExist)
 	return true
 end
 
-function RemoveBuildings(worldObjs, captureIndoor)
+function RemoveUselessBuildings(worldObjs, captureIndoor)
 	-- Local is faster
 	local table_remove = table.remove
 	for i = #worldObjs, 1, -1 do
@@ -584,11 +584,18 @@ function RemoveBuildings(worldObjs, captureIndoor)
 end
 
 function CaptureObjects(captureIndoor)
-	buildings        = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
-	RemoveBuildings(buildings, captureIndoor)
-	local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
-	cables = GetObjsByEntity(supplyGrid, "Cable")
-	tubes  = GetObjsByEntity(supplyGrid, "Tube")
+	local supplyGrid
+	buildings = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
+	RemoveUselessBuildings(buildings, captureIndoor)
+	if captureIndoor then
+		-- No cables and tubes inside dome
+		cables = {}
+		tubes = {}
+	else
+		supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
+		cables = GetObjsByEntity(supplyGrid, "Cable")
+		tubes  = GetObjsByEntity(supplyGrid, "Tube")
+	end
 
 	local numCapturedObjects = #buildings + #cables + #tubes
 	printD("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
