@@ -671,25 +671,22 @@ function LayoutCapture(captureIndoor)
 	end
 end
 
-do
-	local delay = 0
-	function LayoutCaptureOutdoor()
-		CreateRealTimeThread(function()
-			printD(GetDate())
-			MsgPopup("Capture outdoor, please wait...")
-			Sleep(delay)
-			LayoutCapture(false)
-		end)
-	end
+function LayoutCaptureOutdoor()
+	-- Run in real time thread to show MsgPopup() properly!
+	-- Else it will be showed, after LayoutCapture() finished. No sense.
+	CreateRealTimeThread(function()
+		printD(GetDate())
+		MsgPopup("Capture outdoor, please wait...")
+		LayoutCapture(false)
+	end)
+end
 
-	function LayoutCaptureIndoor()
-		CreateRealTimeThread(function()
-			printD(GetDate())
-			MsgPopup("Capture indoor, please wait...")
-			Sleep(delay)
-			LayoutCapture(true)
-		end)
-	end
+function LayoutCaptureIndoor()
+	CreateRealTimeThread(function()
+		printD(GetDate())
+		MsgPopup("Capture indoor, please wait...")
+		LayoutCapture(true)
+	end)
 end
 
 function CreateLayoutPath()
