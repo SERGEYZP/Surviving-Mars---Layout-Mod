@@ -615,7 +615,6 @@ function AllObjectsTablesEmpty()
 end
 
 function LayoutCapture(skipDome)
-	printD(GetDate())
 	local QuestionBox = ChoGGi.ComFuncs.QuestionBox
 
 	-- After this all params in layoutSettings are correct
@@ -672,12 +671,25 @@ function LayoutCapture(skipDome)
 	end
 end
 
-function LayoutCaptureAll()
-	LayoutCapture(false)
-end
+do
+	local delay = 0
+	function LayoutCaptureOutdoor()
+		CreateRealTimeThread(function()
+			printD(GetDate())
+			MsgPopup("Capture outdoor, please wait...")
+			Sleep(delay)
+			LayoutCapture(false)
+		end)
+	end
 
-function LayoutCaptureWithoutDome()
-	LayoutCapture(true)
+	function LayoutCaptureIndoor()
+		CreateRealTimeThread(function()
+			printD(GetDate())
+			MsgPopup("Capture indoor, please wait...")
+			Sleep(delay)
+			LayoutCapture(true)
+		end)
+	end
 end
 
 function CreateLayoutPath()
