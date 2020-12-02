@@ -39,7 +39,7 @@
 
 
 
--- Change "idLayoutPrefix" if you change mod name, set "title" in "metadala.lua", change function "printD()"
+-- Change "idLayoutPrefix" if you change mod name, set "title" in "metadala.lua", change functions printD(), CreateShortcuts()
 local modName = "Layout Capture Mod"
 local idLayoutPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 
@@ -157,10 +157,11 @@ end
 ---- SHORTCUTS ----
 
 local key = "Insert"
-local ShortcutCapture              = "" .. key
-local ShortcutCaptureWithoutDome   = "Ctrl-" .. key
+local ShortcutCaptureOutdoor       = "" .. key
+local ShortcutCaptureIndoor        = "Ctrl-" .. key
 local ShortcutSetParams            = "Alt-" .. key
 local ShortcutShowInfo             = "Shift-" .. key
+local ShortcutUpdateLayoutsLua     = "Alt-Shift-" .. key
 local ShortcutReloadLua            = "Ctrl-Shift-" .. key
 local ShortcutPhotoMode            = "Ctrl-Alt-Shift-" .. key
 
@@ -173,24 +174,24 @@ function CreateShortcuts()
 	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
 	-- OnAction = FuncName (for example "cls": clear log)
 	Actions[#Actions + 1] = {
-		ActionName = "Layout Capture",
-		ActionId = "Layout.Capture",
-		OnAction = LayoutCaptureAll,
-		ActionShortcut = ShortcutCapture,
+		ActionName = "Layout Capture Outdoor",
+		ActionId = "LCM.Capture.Outdoor",
+		OnAction = LayoutCaptureOutdoor,
+		ActionShortcut = ShortcutCaptureOutdoor,
 		ActionBindable = true,
 	}
 
 	Actions[#Actions + 1] = {
-		ActionName = "Layout Capture without Dome",
-		ActionId = "Layout.Capture.without.Dome",
-		OnAction = LayoutCaptureWithoutDome,
-		ActionShortcut = ShortcutCaptureWithoutDome,
+		ActionName = "Layout Capture Indoor",
+		ActionId = "LCM.Capture.Indoor",
+		OnAction = LayoutCaptureIndoor,
+		ActionShortcut = ShortcutCaptureIndoor,
 		ActionBindable = true,
 	}
 	
 	Actions[#Actions + 1] = {
 		ActionName = "Layout Set Params",
-		ActionId = "Layout.Set.Params",
+		ActionId = "LCM.Set.Params",
 		OnAction = LayoutSetParams,
 		ActionShortcut = ShortcutSetParams,
 		ActionBindable = true,
@@ -198,15 +199,23 @@ function CreateShortcuts()
 
 	Actions[#Actions + 1] = {
 		ActionName = "Layout Show Info",
-		ActionId = "Layout.Show.Info",
+		ActionId = "LCM.Show.Info",
 		OnAction = LayoutShowInfo,
 		ActionShortcut = ShortcutShowInfo,
 		ActionBindable = true,
 	}
 
 	Actions[#Actions + 1] = {
+		ActionName = 'Layout Update "Layouts.lua"',
+		ActionId = "LCM.Update.Layouts.Lua",
+		OnAction = UpdateLayoutsLua,
+		ActionShortcut = ShortcutUpdateLayoutsLua,
+		ActionBindable = true,
+	}
+
+	Actions[#Actions + 1] = {
 		ActionName = "Layout Reload Lua",
-		ActionId = "Layout.Reload.Lua",
+		ActionId = "LCM.Reload.Lua",
 		OnAction = Fixer_ReloadLua,
 		ActionShortcut = ShortcutReloadLua,
 		ActionBindable = true,
@@ -214,7 +223,7 @@ function CreateShortcuts()
 
 	Actions[#Actions + 1] = {
 		ActionName = "Layout Set Green Terrain",
-		ActionId = "Layout.Set.Green.Terrain",
+		ActionId = "LCM.Set.Green.Terrain",
 		OnAction = PhotoMode,
 		ActionShortcut = ShortcutPhotoMode,
 		ActionBindable = true,
@@ -695,6 +704,11 @@ function SaveLayoutsLua()
 		AsyncStringToFile(layoutsFileName, BuildLayoutsLua()),
 		'"Layouts.lua" Updated',
 		'"Layouts.lua" Update Failed')
+end
+
+function UpdateLayoutsLua()
+	SetAllFileNames()
+	SaveLayoutsLua()
 end
 
 -- function SaveMetadataLua()
