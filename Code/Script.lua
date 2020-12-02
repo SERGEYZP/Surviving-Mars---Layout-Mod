@@ -170,7 +170,6 @@ local ShortcutPhotoMode            = "Ctrl-Alt-Shift-" .. key
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
-	printD(GetDate())
 	printD("CreateShortcuts()")
 	local Actions = ChoGGi.Temp.Actions
 	
