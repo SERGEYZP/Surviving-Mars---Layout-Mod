@@ -790,8 +790,17 @@ function LayoutSetParams()
 		CloseDialogsECM()
 	else
 		IsDialogWindowOpen_Params = true
-		OpenInObjectEditorDlg(layoutSettings)
-		SetBuildCategory()
+		CreateRealTimeThread(function()
+			layoutSettings.id           = WaitInputText('Set "id":', layoutSettings.id)
+			layoutSettings.display_name = WaitInputText('Set "Display name":', layoutSettings.display_name)
+			layoutSettings.description  = WaitInputText('Set "Description":', layoutSettings.description)
+			layoutSettings.build_pos    = WaitInputText('Set "Position in menu":', tostring(layoutSettings.build_pos))
+			layoutSettings.radius       = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
+			if DEBUG then
+				OpenInObjectEditorDlg(layoutSettings)
+			end
+			SetBuildCategory()
+		end)
 	end
 end
 
