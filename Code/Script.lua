@@ -600,7 +600,7 @@ function CaptureObjects(captureIndoor)
 	end
 
 	local numCapturedObjects = #buildings + #cables + #tubes
-	printD("Captured Objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
+	printD("Captured objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
 	if DEBUG_EXAMINE then
 		OpenExamine(buildings)
 	end
@@ -648,7 +648,7 @@ function LayoutCapture(captureIndoor)
 	if layoutFileExist then
 		-- function ChoGGi.ComFuncs.QuestionBox(text, function, title, ok_text, cancel_text, image, context, parent, template, thread)
 		QuestionBox(
-			'Path to "Layout" folder: \n\t"' .. CurrentModPath .. 'Code/Layout"\nLayout file with this name already exist in "Layout" folder: \n\t"' .. layoutFileNameNoPath .. '"',
+			'Layout file with this name already exist in "Layout" folder:\n\t"' .. layoutFileNameNoPath .. '"\nPath to "Layout" folder:\n\t"' .. CurrentModPath .. 'Code/Layout"',
 			function(answer)
 				if answer then
 					-- If we reload lua, our old layout object still be present in building's table.
@@ -692,27 +692,27 @@ end
 function CreateLayoutPath()
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "Code/Layout"),
-		'"Code/Layout" Folder Created (if not exist before)',
-		'"Code/Layout" Folder Not Created')
+		'"Code/Layout" Folder created (if not exist before)',
+		'"Code/Layout" Folder not created')
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "UI/Layout"),
-		'"UI/Layout" Folder Created (if not exist before)',
-		'"UI/Layout" Folder Not Created')
+		'"UI/Layout" Folder created (if not exist before)',
+		'"UI/Layout" Folder not created')
 end
 
 function SaveLayoutLua()
 	-- string err AsyncStringToFile(...) - by default overwrites file
 	printDMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
-		"Layout Saved: " .. layoutFileNameNoPath,
-		"Layout Saving Failed: " .. layoutFileNameNoPath)
+		"Layout saved: " .. layoutFileNameNoPath,
+		"Layout saving failed: " .. layoutFileNameNoPath)
 end
 
 function SaveLayoutsLua()
 	printDMsgOrErr(
 		AsyncStringToFile(layoutsFileName, BuildLayoutsLua()),
-		'"Layouts.lua" Updated',
-		'"Layouts.lua" Update Failed')
+		'"Layouts.lua" updated',
+		'"Layouts.lua" update failed')
 end
 
 function UpdateLayoutsLua()
@@ -723,8 +723,8 @@ end
 -- function SaveMetadataLua()
 	-- printDMsgOrErr(
 		-- AsyncStringToFile(metadataFileName, BuildMetadataLua()),
-		-- '"metadata.lua" Updated',
-		-- '"metadata.lua" Update Failed')
+		-- '"metadata.lua" updated',
+		-- '"metadata.lua" update failed')
 -- end
 
 function WriteToFiles()
@@ -736,17 +736,17 @@ function WriteToFiles()
 	if not FileExist(layoutIconFileName) then
 		printDMsgOrErr(
 			AsyncCopyFile(menuIconFileName, layoutIconFileName),
-			"Icon Copied: " .. layoutSettings.id .. ".png",
-			"Icon Copy Failed: " .. layoutSettings.id .. ".png")
+			"Icon copied: " .. layoutSettings.id .. ".png",
+			"Icon copy failed: " .. layoutSettings.id .. ".png")
 	else
-		local str = "Icon Not Copied (already exist): " .. layoutSettings.id .. ".png"
+		local str = "Icon not copied (already exist): " .. layoutSettings.id .. ".png"
 		printD(str)
 	end
 	if GlobalError == true then
 		GlobalError = false
 		MsgPopup("Something went wrong :(")
 	else
-		MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
+		MsgPopup("Layout saved: " .. layoutFileNameNoPath)
 	end
 end
 
@@ -895,7 +895,7 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	elseif IsTubes(type) then
 		template = "life_support_grid"
 	else
-		printD('HexObjLineAsStr(): Wrong "type" argument: ' .. type)
+		printD('HexObjLineAsStr(): wrong "type" argument: ' .. type)
 		return ""
 	end
 	
@@ -1148,7 +1148,7 @@ function BuildGrid(worldObjs, baseHex, type)
 		elseif IsTubes(type) then
 			comment = "\t\t-- Tubes\n"
 		else
-			printD('BuildGrid(): Wrong "type" argument: ' .. type)
+			printD('BuildGrid(): wrong "type" argument: ' .. type)
 			return ""
 		end
 		table.insert(strTbl, comment)
