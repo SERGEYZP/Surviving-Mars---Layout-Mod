@@ -746,7 +746,7 @@ function WriteToFiles()
 		GlobalError = false
 		MsgPopup("Something went wrong :(")
 	else
-		MsgPopup("Layout Saved: " .. layoutFileNameNoPath .. '\n"Reload Lua" [' .. ShortcutReloadLua .. '] to update building menus.')
+		MsgPopup("Layout Saved: " .. layoutFileNameNoPath)
 	end
 end
 
