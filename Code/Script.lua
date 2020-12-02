@@ -58,6 +58,7 @@ end
 
 function printD(str)
 	if DEBUG then
+		str = str:gsub("\n", "\n\t")
 		printL(str)
 		print("[LCM] " .. str)
 	end
