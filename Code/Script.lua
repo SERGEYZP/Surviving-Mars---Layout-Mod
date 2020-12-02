@@ -343,6 +343,7 @@ end
 ---- MAIN CODE ----
 
 local GUIDE
+-- Bad coding, global vars :(
 local buildings, cables, tubes
 
 local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
