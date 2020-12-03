@@ -538,12 +538,16 @@ function FileExist(fileName)
 	end
 end
 
+function GetIdFromFileName(fileName)
+	-- %w - alphanumeric character
+	return string.match(fileName, " - ([%w_]+).lua")
+end
+
 function GetIdList()
 	local idList = {}
 	local layoutListFiles = GetLayoutListFiles()
 	for i, fileName in ipairs(layoutListFiles) do
-		-- %w - alphanumeric character
-		idList[#idList + 1] = string.match(fileName, " - ([%w_]+).lua")
+		idList[#idList + 1] = GetIdFromFileName(fileName)
 	end
 	return idList
 end
