@@ -1684,8 +1684,10 @@ I WANT DELETE LAYOUT:
 	Or delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
 	Delete icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
 	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua" or capture new layout.
-
-"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
+I WANT ADD LAYOUT:
+	The same as "delete", but add files, then update "Layouts.lua".
+DEBUG:
+	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
 
 
