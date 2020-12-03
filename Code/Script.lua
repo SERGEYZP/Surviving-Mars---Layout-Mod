@@ -747,8 +747,11 @@ function SaveLayoutsLua()
 		'"Layouts.lua" update failed')
 end
 
-function UpdateLayoutsLua()
-	printD(GetDate())
+function UpdateLayoutsLua(firedByHotKey)
+	-- if function fired by hotkey, print date. Variable "firedByHotKey" will be "table" in that case.
+	if firedByHotKey then
+		printD(GetDate())
+	end
 	SetAllFileNames()
 	SaveLayoutsLua()
 	MsgPopup('"Layouts.lua" updated')
