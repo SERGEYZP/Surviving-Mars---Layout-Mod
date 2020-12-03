@@ -1546,10 +1546,9 @@ BUILD:
 SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
 	Press [Ctrl-M] and measure radius of building's layout. Press []] .. ShortcutSetRadius .. [[] to set capture radius.
-	Press []] .. ShortcutSetParams .. ']\n' .. [[
-	Two windows will appear: "Choose Building Menu", "Edit Object".
-	Choose building menu by double click, or ignore it (previous selected menu category will be used). Note: "building_category"
-		value will not be updated after double click, but will be saved anyway!
+	Press []] .. ShortcutSetParams .. [[] and set layout's params.
+	In "Choose Building Menu" window choose building menu by double click, or ignore it (previous selected menu category will be used).
+	In debug mode additional window "Edit Object" will appear, "building_category" value will not be updated after double click, but will be saved anyway!
 	Set parameters in "Edit Object" window:
 		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
 		"build_pos" (number from 0 to 99, can be duplicated) position in build menu.
