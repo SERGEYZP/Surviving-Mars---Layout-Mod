@@ -170,7 +170,7 @@ local ShortcutPhotoMode        = "Ctrl-Alt-Shift-" .. key
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
-	printD("CreateShortcuts()")
+	printD("Shortcuts created")
 	local Actions = ChoGGi.Temp.Actions
 	
 	-- ActionName = 'Display Name In "Key Bindings" Menu' ("Surviving Mars" -> "Options" -> "Key Bindings")
