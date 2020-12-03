@@ -1573,7 +1573,7 @@ PHOTO MODE [Optional]:
 I WANT DELETE LAYOUT:
 	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
 	Delete icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
-	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua"
+	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua" or capture new layout.
 
 "build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
