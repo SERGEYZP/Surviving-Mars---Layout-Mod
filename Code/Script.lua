@@ -73,7 +73,9 @@ function printDMsgOrErr(err, sucess, fail)
 	if err then
 		GlobalError = true
 		printD(fail)
-		printD(err)
+		-- printD(err)
+		print(err) -- always print "err"
+		printL(err)
 	else
 		if sucess then
 			printD(sucess)
