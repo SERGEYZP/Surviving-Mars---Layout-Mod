@@ -1085,9 +1085,10 @@ function FindEndObj(hexObjs, hexObjBegin, direction)
 end
 
 function RemoveNoConn(hexObjs)
+	local table_remove = table.remove
 	for i = #hexObjs, 1, -1 do
 		if hexObjs[i].conn == 0 then
-			table.remove(hexObjs, i)
+			table_remove(hexObjs, i)
 		end
 	end
 end
