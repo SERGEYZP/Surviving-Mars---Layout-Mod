@@ -167,6 +167,7 @@ local ShortcutShowInfo         = "Shift-" .. key
 local ShortcutUpdateLayoutsLua = "Alt-Shift-" .. key
 local ShortcutReloadLua        = "Ctrl-Shift-" .. key
 local ShortcutPhotoMode        = "Ctrl-Alt-Shift-" .. key
+local ShortcutSetRadius        = "Alt-M"
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
@@ -228,6 +229,14 @@ function CreateShortcuts()
 		ActionId = "LCM.Photo.Mode",
 		OnAction = PhotoMode,
 		ActionShortcut = ShortcutPhotoMode,
+		ActionBindable = true,
+	}
+
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Set Radius",
+		ActionId = "LCM.Set.Radius",
+		OnAction = LayoutSetRadius,
+		ActionShortcut = ShortcutSetRadius,
 		ActionBindable = true,
 	}
 end
@@ -791,13 +800,19 @@ function LayoutSetParams()
 			layoutSettings.display_name = WaitInputText('Set "Display name":', layoutSettings.display_name)
 			layoutSettings.description  = WaitInputText('Set "Description":', layoutSettings.description)
 			layoutSettings.build_pos    = WaitInputText('Set "Position in menu":', tostring(layoutSettings.build_pos))
-			layoutSettings.radius       = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
+			-- layoutSettings.radius       = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
 			if DEBUG then
 				OpenInObjectEditorDlg(layoutSettings)
 			end
 			SetBuildCategory()
 		end)
 	end
+end
+
+function LayoutSetRadius()
+	CreateRealTimeThread(function()
+		layoutSettings.radius = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
+	end)
 end
 
 function LayoutShowInfo()
@@ -1514,6 +1529,7 @@ SHORTCUTS:
 	Layout Show Info = []] .. ShortcutShowInfo .. [[]
 	Layout Reload Lua = []] .. ShortcutReloadLua .. [[]
 	Layout Photo Mode = []] .. ShortcutPhotoMode .. [[]
+	Layout Set Radius = []] .. ShortcutSetRadius .. [[]
 INSTALL:
 	ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 	[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
@@ -1527,7 +1543,7 @@ BUILD:
 	Press [Alt-B] to complete constructions.
 SET PARAMS:
 	Place your mouse cursor in the center of building's layout.
-	Press [Ctrl-M] and measure radius of building's layout.
+	Press [Ctrl-M] and measure radius of building's layout. Press []] .. ShortcutSetRadius .. [[] to set capture radius.
 	Press []] .. ShortcutSetParams .. ']\n' .. [[
 	Two windows will appear: "Choose Building Menu", "Edit Object".
 	Choose building menu by double click, or ignore it (previous selected menu category will be used). Note: "building_category"
