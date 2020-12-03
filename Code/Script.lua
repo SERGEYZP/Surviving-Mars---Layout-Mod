@@ -1026,13 +1026,14 @@ function AxialDirection(hexObj)
 end
 
 function BuildOrphans(hexObjs, type, strTbl)
+	local table_remove = table.remove
 	local orphanNum = 0
 	for i = #hexObjs, 1, -1 do
 		local hexObj = hexObjs[i]
 		if hexObj.conn == 0 then
 			orphanNum = orphanNum + 1
 			strTbl[#strTbl + 1] = HexObjLineAsStr(hexObj.hex, hexObj.hex, type, true)
-			table.remove(hexObjs, i)
+			table_remove(hexObjs, i)
 		end
 	end
 	return orphanNum
