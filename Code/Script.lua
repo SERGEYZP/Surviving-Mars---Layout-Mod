@@ -765,7 +765,12 @@ function UpdateLayoutsLua(firedByHotKey)
 	end
 	SetAllFileNames()
 	SaveLayoutsLua()
-	MsgPopup('"Layouts.lua" updated')
+	if GlobalError == true then
+		GlobalError = false
+		MsgPopup("Something went wrong :(")
+	else
+		MsgPopup('"Layouts.lua" updated')
+	end
 end
 
 -- function SaveMetadataLua()
