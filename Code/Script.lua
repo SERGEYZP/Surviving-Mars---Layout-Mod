@@ -179,6 +179,7 @@ local ShortcutUpdateLayoutsLua = "Alt-Shift-" .. key
 local ShortcutReloadLua        = "Ctrl-Shift-" .. key
 local ShortcutPhotoMode        = "Ctrl-Alt-Shift-" .. key
 local ShortcutSetRadius        = "Alt-M"
+local ShortcutDeleteLayout     = "Ctrl-Alt-Shift-Delete"
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
@@ -248,6 +249,14 @@ function CreateShortcuts()
 		ActionId = "LCM.Set.Radius",
 		OnAction = LayoutSetRadius,
 		ActionShortcut = ShortcutSetRadius,
+		ActionBindable = true,
+	}
+
+	Actions[#Actions + 1] = {
+		ActionName = "Layout Delete",
+		ActionId = "LCM.Delete.Layout",
+		OnAction = LayoutDelete,
+		ActionShortcut = ShortcutDeleteLayout,
 		ActionBindable = true,
 	}
 end
@@ -852,6 +861,72 @@ function LayoutShowInfo()
 		IsDialogWindowOpen_Info = true
 		OpenExamine(GUIDE)
 	end
+end
+
+local IsDialogWindowOpen_Delete = false
+
+function LayoutDelete()
+	if BlacklistEnabled() then
+		MsgPopupBE()
+		return
+	end
+	
+	printD(GetDate())
+	if IsDialogWindowOpen_Delete then
+		IsDialogWindowOpen_Delete = false
+		ChoGGi.ComFuncs.CloseDialogsECM()
+		return
+	end
+
+	local layoutListFiles = GetLayoutListFiles()
+	if TableEmpty(layoutListFiles) then
+		MsgPopup("You don't have layouts")
+		return
+	end
+	local itemList = {}
+	for i, strFileName in ipairs(layoutListFiles) do
+		itemList[#itemList + 1] = {text = strFileName, value = strFileName}
+	end
+
+	local function CallBackFunc(choice)
+		IsDialogWindowOpen_Delete = false
+		if choice.nothing_selected then
+			return
+		end
+
+		local file = choice[1].value
+		
+		ChoGGi.ComFuncs.QuestionBox(
+			'Delete file: ' .. file .. '"?\nRelative icon will be deleted too!',
+			function(answer)
+				if answer then
+					DeleteLayoutFile(file)
+					UpdateLayoutsLua()
+				end
+			end,
+			"Delete file?"
+		)
+	end
+
+	IsDialogWindowOpen_Delete = true
+	ChoGGi.ComFuncs.OpenInListChoice{
+		callback = CallBackFunc,
+		items = itemList,
+		title = "Delete layout",
+		skip_sort = true,
+	}
+end
+
+function DeleteLayoutFile(fileName)
+	printDMsgOrErr(
+		AsyncFileDelete(CurrentModPath .. "Code/Layout/" .. fileName),
+		"Layout deleted: " .. fileName,
+		"Layout deleting failed: " .. fileName)
+	local iconName = GetIdFromFileName(fileName) .. ".png"
+	printDMsgOrErr(
+		AsyncFileDelete(CurrentModPath .. "UI/Layout/" .. iconName),
+		"Icon deleted: " .. iconName,
+		"Icon deleting failed: " .. iconName)
 end
 
 function BuildLayoutHeadLua()
@@ -1559,6 +1634,7 @@ SHORTCUTS:
 	Layout Reload Lua = []] .. ShortcutReloadLua .. [[]
 	Layout Photo Mode = []] .. ShortcutPhotoMode .. [[]
 	Layout Set Radius = []] .. ShortcutSetRadius .. [[]
+	Layout Delete = []] .. ShortcutDeleteLayout .. [[]
 INSTALL:
 	ChoGGi's Mods: https://github.com/ChoGGi/SurvivingMars_CheatMods/
 	[REQUIRED] ChoGGi's "Startup HelperMod" to bypass blacklist (we need access to AsyncIO functions to create lua files).
@@ -1598,7 +1674,8 @@ PHOTO MODE [Optional]:
 	Make some fancy icon and replace the one, located in "]] .. CurrentModPath .. 'UI/%id%.png"\n' .. [[
 	Icon template: "Surviving Mars\ModTools\Samples\Mods\User Interface Elements\UI\Buildings Icons.png"
 I WANT DELETE LAYOUT:
-	Delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
+	Press []] .. ShortcutDeleteLayout .. [[] and double click file to delete. Press hotkey again to close window if you change mind.
+	Or delete layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
 	Delete icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
 	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua" or capture new layout.
 
