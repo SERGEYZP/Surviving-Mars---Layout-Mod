@@ -430,7 +430,7 @@ end
 -- Return "false" - params OK, "true" - params WRONG
 function CheckInputParams()
 	local MsgWait = ChoGGi.ComFuncs.MsgWait
-	local build_category = tonumber(layoutSettings.build_category)
+	local build_category = tonumber(layoutSettings.build_category) or default_build_category
 	layoutSettings.build_category = build_category
 	if build_category < 1 or build_category > #origMenuId then
 		-- Restore default value
@@ -442,7 +442,7 @@ function CheckInputParams()
 		return true
 	end
 	
-	local build_pos = tonumber(layoutSettings.build_pos)
+	local build_pos = tonumber(layoutSettings.build_pos) or default_build_pos
 	layoutSettings.build_pos = build_pos
 	if build_pos < 0 or build_pos > 99 then
 		layoutSettings.build_pos = default_build_pos
@@ -468,7 +468,7 @@ function CheckInputParams()
 		return true
 	end
 	
-	local radius = tonumber(layoutSettings.radius)
+	local radius = tonumber(layoutSettings.radius) or default_radius
 	layoutSettings.radius = radius
 	if radius < 1 then
 	layoutSettings.radius = default_radius
@@ -1538,7 +1538,7 @@ SET PARAMS:
 		"description", "display_name" - as you like.
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
 			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
-		"radius" ("nil" or positive number [to infinity and beyond]) capture radius in meters.
+		"radius" (positive number [to infinity and beyond]) capture radius in meters.
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCaptureOutdoor .. [[] to capture outdoor buildings (be aware to capture buildings required be near dome or resource deposit).
