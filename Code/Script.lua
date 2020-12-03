@@ -52,18 +52,18 @@ local DEBUG = true
 
 -- Print to "Layout Mod" log file
 function printL(str)
+	str = str:gsub("\n", "\n\t")
+	print("[LCM] " .. str)
 	if BlacklistEnabled() then
 		return
 	end
 	-- -1 - append to file
-	AsyncStringToFile(CurrentModPath .. "layout_log.txt", str .. "\n", -1)
+	AsyncStringToFile(CurrentModPath .. "log.txt", str .. "\n", -1)
 end
 
 function printD(str)
 	if DEBUG then
-		str = str:gsub("\n", "\n\t")
 		printL(str)
-		print("[LCM] " .. str)
 	end
 end
 
@@ -72,9 +72,7 @@ local GlobalError = false
 function printDMsgOrErr(err, sucess, fail)
 	if err then
 		GlobalError = true
-		printD(fail)
-		-- printD(err)
-		print(err) -- always print "err"
+		printL(fail)
 		printL(err)
 	else
 		if sucess then
