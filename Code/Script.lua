@@ -52,6 +52,9 @@ local DEBUG = true
 
 -- Print to "Layout Mod" log file
 function printL(str)
+	if BlacklistEnabled() then
+		return
+	end
 	-- -1 - append to file
 	AsyncStringToFile(CurrentModPath .. "layout_log.txt", str .. "\n", -1)
 end
@@ -91,6 +94,10 @@ function MsgPopup(str)
 	-- }
 	printD("MP: " .. str)
 	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
+end
+
+function MsgPopupBE()
+	MsgPopup("AsyncIO functions are in blacklist, read info: [" .. ShortcutShowInfo .. "]")
 end
 
 -- ### Changed:
@@ -151,7 +158,11 @@ function Fixer_ReloadLua()
 end
 
 function GetDate()
-	return "--------" .. os.date("%Y/%m/%d-%H:%M:%S") .. "--------"
+	local date = ""
+	if not BlacklistEnabled() then
+		date = date .. os.date("%Y/%m/%d-%H:%M:%S")
+	end
+	return "--------" .. date .. "--------"
 end
 
 
@@ -633,7 +644,19 @@ function AllObjectsTablesEmpty()
 	end
 end
 
+function BlacklistEnabled()
+	if AsyncGetFileAttribute then
+		return false
+	else
+		return true
+	end
+end
+
 function LayoutCapture(captureIndoor)
+	if BlacklistEnabled() then
+		MsgPopupBE()
+		return
+	end
 	-- After this all params in layoutSettings are correct
 	if CheckInputParams() then
 		return
