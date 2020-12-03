@@ -224,8 +224,8 @@ function CreateShortcuts()
 	}
 
 	Actions[#Actions + 1] = {
-		ActionName = "Layout Set Green Terrain",
-		ActionId = "LCM.Set.Green.Terrain",
+		ActionName = "Layout Photo Mode",
+		ActionId = "LCM.Photo.Mode",
 		OnAction = PhotoMode,
 		ActionShortcut = ShortcutPhotoMode,
 		ActionBindable = true,
