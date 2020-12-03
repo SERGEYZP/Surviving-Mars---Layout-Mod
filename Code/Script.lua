@@ -789,8 +789,8 @@ end
 
 function SetBuildCategory()
 	local itemList = {}
-	for i, v in ipairs(origMenuId) do
-		itemList[#itemList + 1] = {text = origMenuId[i], value = i}
+	for i, id in ipairs(origMenuId) do
+		itemList[#itemList + 1] = {text = id, value = i}
 	end
 
 	local function CallBackFunc(choice)
