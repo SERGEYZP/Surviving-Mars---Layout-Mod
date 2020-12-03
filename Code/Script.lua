@@ -814,15 +814,13 @@ local IsDialogWindowOpen_Info = false
 local IsDialogWindowOpen_Params = false
 
 function LayoutSetParams()
-	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
-	local CloseDialogsECM = ChoGGi.ComFuncs.CloseDialogsECM
 	if IsDialogWindowOpen_Params then
 		-- If we close "Info" dialog window here, flag "IsDialogWindowOpen_Info" will remain "true".
 			-- If we hit hotkey to show "Info" window, it will not appear. So clear this flag.
 		IsDialogWindowOpen_Info = false
 		IsDialogWindowOpen_Params = false
 		-- Close ALL windows
-		CloseDialogsECM()
+		ChoGGi.ComFuncs.CloseDialogsECM()
 	else
 		IsDialogWindowOpen_Params = true
 		CreateRealTimeThread(function()
@@ -832,7 +830,7 @@ function LayoutSetParams()
 			layoutSettings.build_pos    = WaitInputText('Set "Position in menu":', tostring(layoutSettings.build_pos))
 			-- layoutSettings.radius       = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
 			if DEBUG then
-				OpenInObjectEditorDlg(layoutSettings)
+				ChoGGi.ComFuncs.OpenInObjectEditorDlg(layoutSettings)
 			end
 			SetBuildCategory()
 		end)
@@ -846,12 +844,10 @@ function LayoutSetRadius()
 end
 
 function LayoutShowInfo()
-	local OpenInObjectEditorDlg = ChoGGi.ComFuncs.OpenInObjectEditorDlg
-	local CloseDialogsECM = ChoGGi.ComFuncs.CloseDialogsECM
 	if IsDialogWindowOpen_Info then
 		IsDialogWindowOpen_Info = false
 		IsDialogWindowOpen_Params = false
-		CloseDialogsECM()
+		ChoGGi.ComFuncs.CloseDialogsECM()
 	else
 		IsDialogWindowOpen_Info = true
 		OpenExamine(GUIDE)
