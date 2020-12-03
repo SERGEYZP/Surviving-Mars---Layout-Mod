@@ -397,6 +397,7 @@ local layoutSettings = {
 function TableToString(inputTable)
 	local str = ""
 	for i, v in ipairs(inputTable) do
+		str = str .. "\t\t"
 		if i < 10 then
 			-- Shift line with one digit [1-9] to right
 			str = str .. "   "
