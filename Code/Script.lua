@@ -160,13 +160,13 @@ end
 ---- SHORTCUTS ----
 
 local key = "Insert"
-local ShortcutCaptureOutdoor       = "" .. key
-local ShortcutCaptureIndoor        = "Ctrl-" .. key
-local ShortcutSetParams            = "Alt-" .. key
-local ShortcutShowInfo             = "Shift-" .. key
-local ShortcutUpdateLayoutsLua     = "Alt-Shift-" .. key
-local ShortcutReloadLua            = "Ctrl-Shift-" .. key
-local ShortcutPhotoMode            = "Ctrl-Alt-Shift-" .. key
+local ShortcutCaptureOutdoor   = "" .. key
+local ShortcutCaptureIndoor    = "Ctrl-" .. key
+local ShortcutSetParams        = "Alt-" .. key
+local ShortcutShowInfo         = "Shift-" .. key
+local ShortcutUpdateLayoutsLua = "Alt-Shift-" .. key
+local ShortcutReloadLua        = "Ctrl-Shift-" .. key
+local ShortcutPhotoMode        = "Ctrl-Alt-Shift-" .. key
 
 -- After this message ChoGGi's object is ready to use
 function CreateShortcuts()
