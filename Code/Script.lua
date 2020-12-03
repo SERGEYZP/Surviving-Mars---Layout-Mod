@@ -1555,6 +1555,7 @@ SHORTCUTS:
 	Layout Capture Indoor = []] .. ShortcutCaptureIndoor .. [[]
 	Layout Set Params = []] .. ShortcutSetParams .. [[]
 	Layout Show Info = []] .. ShortcutShowInfo .. [[]
+	Layout Update "Layouts.lua" = []] .. ShortcutUpdateLayoutsLua .. [[]
 	Layout Reload Lua = []] .. ShortcutReloadLua .. [[]
 	Layout Photo Mode = []] .. ShortcutPhotoMode .. [[]
 	Layout Set Radius = []] .. ShortcutSetRadius .. [[]
