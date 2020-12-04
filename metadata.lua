@@ -15,7 +15,7 @@ return PlaceObj('ModDef', {
 	},
 	'title', "Layout Capture Mod",
 	'description', "Capture and save building's layout.",
-	'image', "ModImage.png",
+	'image', "Preview.png",
 	'last_changes', "Initial release.",
 	'id', "Fixer_Layout_Mod",
 	'steam_id', "9876543210",
