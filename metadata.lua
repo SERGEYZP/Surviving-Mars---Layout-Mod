@@ -22,9 +22,9 @@ return PlaceObj('ModDef', {
 	'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
 	'pops_any_uuid', "bbf577bf-dee0-4346-bad5-1037f6a827e7",
 	'author', "Kyklish",
-	'version', 1,
 	'version_major', 1,
 	'version_minor', 0,
+	'version', 1,
 	'lua_revision', 233360,
 	'saved_with_revision', 249143,
 	'code', {
