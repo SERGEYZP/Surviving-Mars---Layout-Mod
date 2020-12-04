@@ -1657,7 +1657,7 @@ SET PARAMS:
 		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
 		"build_pos" (number from 0 to 99, can be duplicated) position in build menu.
 		"description", "display_name" - as you like.
-		"id" (must be unique, allowed "CamelCase" or "snake_case" notation [NO space character]) internal script parameter,
+		"id" (must be unique, allowed "CamelCase" or "snake_case" notation, allowed characters [_a-zA-Z0-9]) internal script parameter,
 			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"radius" (positive number [to infinity and beyond]) capture radius in meters.
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
