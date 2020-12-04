@@ -565,8 +565,7 @@ end
 function IsIdPresentInLayoutFolder(id)
 	local layoutListFiles = GetLayoutListFiles()
 	for i, fileName in ipairs(layoutListFiles) do
-		-- %w - alphanumeric character
-		if string.match(fileName, " - ([%w_]+).lua") == id then
+		if GetIdFromFileName(fileName) == id then
 			return true
 		end
 	end
