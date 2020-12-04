@@ -1604,26 +1604,20 @@ end
 
 -- Use this message to perform post-built actions on the final classes
 function OnMsg.ClassesBuilt()
-	-- printD("msg_ClassesBuilt")
 	CreateShortcuts() -- in other places not work :(
-	CreateMenus() -- original place
+	CreateMenus()
 end
 
 -- -- New_Game + Load_Save
 -- function OnMsg.ModsReloaded()
-	-- -- printD("msg_ModsReloaded")
 -- end
 
 -- -- Load_Save
 -- function OnMsg.LoadGame()
-	-- -- printD("msg_LoadGame")
-	-- -- CreateMenus()
 -- end
 
 -- -- New_Game
 -- function OnMsg.CityStart()
-	-- -- printD("CityStart")
-	-- -- CreateMenus()
 -- end
 
 
