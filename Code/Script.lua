@@ -39,6 +39,88 @@
 
 
 
+---- Forward function declaration ----
+-- All functions are "local", we hide them from global scope, other mods will not see them
+local AllObjectsTablesEmpty
+local AxialDirection
+local BlacklistEnabled
+local BuildBuildings
+local BuildCables
+local BuildGrid
+local BuildLayoutBodyLua
+local BuildLayoutHeadLua
+local BuildLayoutLua
+local BuildLayoutsLua
+local BuildLayoutTailLua
+local BuildLines
+local BuildMetadataLua
+local BuildOrphans
+local BuildTubesTesting
+local CaptureObjects
+local CheckBitConn
+local CheckInputParams
+local ChoGGi_ReloadLua
+local ClearBitConn
+local ClearBuildingTemplates
+local CreateLayoutPath
+local CreateMenus
+local CreateShortcuts
+local DeleteLayoutFile
+local FileExist
+local FindEndObj
+local FindHub
+local FindObjByHex
+local GetBaseObjectPosition
+local GetDate
+local GetIdFromFileName
+local GetIdList
+local GetLayoutListFiles
+local GetObjsByEntity
+local Hex
+local HexEqual
+local HexNeighbor
+local HexObjLineAsStr
+local HexObjs
+local IsAllNeighbors
+local IsCables
+local IsHub
+local IsIdPresentInLayoutFolder
+local IsIdUnique
+local IsTubes
+local LayoutCapture
+local LayoutCaptureIndoor
+local LayoutCaptureOutdoor
+local LayoutDelete
+local LayoutReloadLua
+local LayoutSetParams
+local LayoutSetRadius
+local LayoutShowInfo
+local MsgPopup
+local MsgPopupBE
+local PhotoMode
+local printD
+local printDMsgOrErr
+local printL
+local RemoveNoConn
+local RemoveUselessBuildings
+local ReturnAllNearby
+local SaveLayoutLua
+local SaveLayoutsLua
+local SaveMetadataLua
+local SetAdditionalOrphans
+local SetAllFileNames
+local SetBuildCategory
+local SetHubOnLineEnding
+local TableEmpty
+local TableToString
+local TerrainTextureChange
+local TrimSpace
+local UpdateLayoutsLua
+local WriteToFiles
+
+
+
+
 -- Change "idLayoutPrefix" if you change mod name, set "title" in "metadala.lua", change functions printD(), CreateShortcuts()
 local modName = "Layout Capture Mod"
 local idLayoutPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
@@ -51,7 +133,7 @@ local DEBUG = true
 -- local DEBUG_LUA = true
 
 -- Print to "Layout Mod" log file
-function printL(str)
+printL = function(str)
 	str = str:gsub("\n", "\n\t")
 	print("[LCM] " .. str)
 	if BlacklistEnabled() then
@@ -61,7 +143,7 @@ function printL(str)
 	AsyncStringToFile(CurrentModPath .. "log.txt", str .. "\n", -1)
 end
 
-function printD(str)
+printD = function(str)
 	if DEBUG then
 		printL(str)
 	end
@@ -69,7 +151,7 @@ end
 
 local GlobalError = false
 
-function printDMsgOrErr(err, sucess, fail)
+printDMsgOrErr = function(err, sucess, fail)
 	if err then
 		GlobalError = true
 		printL(fail)
@@ -81,7 +163,7 @@ function printDMsgOrErr(err, sucess, fail)
 	end
 end
 
-function MsgPopup(str)
+MsgPopup = function(str)
 	-- Maximum 2 lines of text
 	-- ChoGGi.ComFuncs.MsgPopup(text, title, params)
 	-- params = {
@@ -96,7 +178,7 @@ function MsgPopup(str)
 	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
 end
 
-function MsgPopupBE()
+MsgPopupBE = function()
 	MsgPopup("AsyncIO functions are in blacklist, read info: [" .. ShortcutShowInfo .. "]")
 end
 
@@ -105,7 +187,7 @@ end
 -- Wait for new release with latest commits.
 -- TODO ChoGGi will add this function to Expanded Cheat Menu, stay tuned
 -- ECM/Lib must be enabled before all others mod
-function ChoGGi_ReloadLua()
+ChoGGi_ReloadLua = function()
     if not ModsLoaded then
         return
     end
@@ -127,7 +209,7 @@ function ChoGGi_ReloadLua()
 end
 
 -- Remove all layouts from game
-function ClearBuildingTemplates()
+ClearBuildingTemplates = function()
 	local bt = BuildingTemplates
 	local string_find = string.find
 	-- Remove only layouts, present in "Code/Layout" folder. If we delete layout, it will be still present in running game. Not good.
@@ -143,7 +225,7 @@ function ClearBuildingTemplates()
 end
 
 -- ReloadLua() is in-game function name, don't use it!!!
-function LayoutReloadLua()
+LayoutReloadLua = function()
 	cls()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
@@ -157,7 +239,7 @@ function LayoutReloadLua()
 	end)
 end
 
-function GetDate()
+GetDate = function()
 	local date = ""
 	if not BlacklistEnabled() then
 		date = date .. os.date("%Y/%m/%d-%H:%M:%S")
@@ -182,7 +264,7 @@ local ShortcutSetRadius        = "Alt-M"
 local ShortcutDeleteLayout     = "Ctrl-Alt-Shift-Delete"
 
 -- After this message ChoGGi's object is ready to use
-function CreateShortcuts()
+CreateShortcuts = function()
 	printD("Shortcuts created")
 	local Actions = ChoGGi.Temp.Actions
 	
@@ -303,7 +385,7 @@ local origMenuId = {
 -- Table with id for my menus
 local menuId = {}
 
-function CreateMenus()
+CreateMenus = function()
 	-- Create id for my submenus
 	for i, id in ipairs(origMenuId) do
 		menuId[i] = idMenuPrefix .. id
@@ -394,7 +476,7 @@ local layoutSettings = {
 
 -- Forward declaration with this function not work.
 -- If make forward declaration and place function's body below "local GUIDE", "local GUIDE" will call nil "TableToString" variable
-function TableToString(inputTable)
+TableToString = function(inputTable)
 	local str = ""
 	for i, v in ipairs(inputTable) do
 		str = str .. "\t\t"
@@ -410,7 +492,7 @@ end
 -- Get all objects, then filter for ones within *radius*, returned sorted by dist, or *sort* for name
 -- ChoGGi.ComFuncs.OpenInExamineDlg(ReturnAllNearby(1000, "class")) from ChoGGi's Library v8.7
 -- Removed "pt" parameter. "radius" in meters. Added parameter "class": only get objects inherited from "class", provided by this parameter
-function ReturnAllNearby(radius, sort, class)
+ReturnAllNearby = function(radius, sort, class)
 	-- local is faster then global
 	local table_sort = table.sort
 
@@ -436,7 +518,7 @@ function ReturnAllNearby(radius, sort, class)
 end
 
 -- Return table with objects, that match "entity" parameter
-function GetObjsByEntity(inputTable, entity)
+GetObjsByEntity = function(inputTable, entity)
 	local string_find = string.find
 	local table_insert = table.insert
 	local resultTable = {}
@@ -449,7 +531,7 @@ function GetObjsByEntity(inputTable, entity)
 end
 
 -- Trim space http://lua-users.org/wiki/StringTrim
-function TrimSpace(str)
+TrimSpace = function(str)
 	-- "%s" - space
 	-- "."  - any character
 	-- "-"  - 'lazy' zero or more times
@@ -458,7 +540,7 @@ function TrimSpace(str)
 end
 
 -- Return "false" - params OK, "true" - params WRONG
-function CheckInputParams()
+CheckInputParams = function()
 	local MsgWait = ChoGGi.ComFuncs.MsgWait
 	local build_category = tonumber(layoutSettings.build_category) or default_build_category
 	layoutSettings.build_category = build_category
@@ -512,7 +594,7 @@ function CheckInputParams()
 	return false
 end
 
-function SetAllFileNames()
+SetAllFileNames = function()
 	-- metadata.lua
 	metadataFileName = CurrentModPath .. "metadata.lua"
 	-- Layouts.lua
@@ -540,7 +622,7 @@ function SetAllFileNames()
 	end
 end
 
-function FileExist(fileName)
+FileExist = function(fileName)
 	if AsyncGetFileAttribute(fileName, "size") == "File Not Found" then
 		return false
 	else
@@ -548,12 +630,12 @@ function FileExist(fileName)
 	end
 end
 
-function GetIdFromFileName(fileName)
+GetIdFromFileName = function(fileName)
 	-- %w - alphanumeric character
 	return string.match(fileName, " - ([%w_]+).lua")
 end
 
-function GetIdList()
+GetIdList = function()
 	local idList = {}
 	local layoutListFiles = GetLayoutListFiles()
 	for i, fileName in ipairs(layoutListFiles) do
@@ -562,7 +644,7 @@ function GetIdList()
 	return idList
 end
 
-function IsIdPresentInLayoutFolder(id)
+IsIdPresentInLayoutFolder = function(id)
 	local layoutListFiles = GetLayoutListFiles()
 	for i, fileName in ipairs(layoutListFiles) do
 		if GetIdFromFileName(fileName) == id then
@@ -572,7 +654,7 @@ function IsIdPresentInLayoutFolder(id)
 	return false
 end
 
-function IsIdUnique(layoutFileExist)
+IsIdUnique = function(layoutFileExist)
 	local MsgWait = ChoGGi.ComFuncs.MsgWait
 	local id = layoutSettings.id
 	-- If "id" is present in "Layout" folder in different file - Not unique - return false
@@ -598,7 +680,7 @@ function IsIdUnique(layoutFileExist)
 	return true
 end
 
-function RemoveUselessBuildings(worldObjs, captureIndoor)
+RemoveUselessBuildings = function(worldObjs, captureIndoor)
 	-- Local is faster
 	local table_remove = table.remove
 	for i = #worldObjs, 1, -1 do
@@ -618,7 +700,7 @@ function RemoveUselessBuildings(worldObjs, captureIndoor)
 	end
 end
 
-function CaptureObjects(captureIndoor)
+CaptureObjects = function(captureIndoor)
 	local supplyGrid
 	buildings = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
 	RemoveUselessBuildings(buildings, captureIndoor)
@@ -639,7 +721,7 @@ function CaptureObjects(captureIndoor)
 	end
 end
 
-function TableEmpty(table)
+TableEmpty = function(table)
 	-- next(table) == nil -- Is Empty Table Check
 	if next(table) == nil then
 		return true
@@ -649,7 +731,7 @@ function TableEmpty(table)
 end
 
 -- Is all object's tables empty
-function AllObjectsTablesEmpty()
+AllObjectsTablesEmpty = function()
 	if TableEmpty(buildings) and TableEmpty(cables) and TableEmpty(tubes) then
 		return true
 	else
@@ -657,7 +739,7 @@ function AllObjectsTablesEmpty()
 	end
 end
 
-function BlacklistEnabled()
+BlacklistEnabled = function()
 	if AsyncGetFileAttribute then
 		return false
 	else
@@ -665,7 +747,7 @@ function BlacklistEnabled()
 	end
 end
 
-function LayoutCapture(captureIndoor)
+LayoutCapture = function(captureIndoor)
 	if BlacklistEnabled() then
 		MsgPopupBE()
 		return
@@ -712,7 +794,7 @@ function LayoutCapture(captureIndoor)
 	end
 end
 
-function LayoutCaptureOutdoor()
+LayoutCaptureOutdoor = function()
 	-- Run in real time thread to show MsgPopup() properly!
 	-- Else it will be showed, after LayoutCapture() finished. No sense.
 	printD(GetDate())
@@ -722,7 +804,7 @@ function LayoutCaptureOutdoor()
 	end)
 end
 
-function LayoutCaptureIndoor()
+LayoutCaptureIndoor = function()
 	printD(GetDate())
 	CreateRealTimeThread(function()
 		MsgPopup("Capture indoor, please wait...")
@@ -730,7 +812,7 @@ function LayoutCaptureIndoor()
 	end)
 end
 
-function CreateLayoutPath()
+CreateLayoutPath = function()
 	printDMsgOrErr(
 		AsyncCreatePath(CurrentModPath .. "Code/Layout"),
 		'"Code/Layout" Folder created (if not exist before)',
@@ -741,7 +823,7 @@ function CreateLayoutPath()
 		'"UI/Layout" Folder not created')
 end
 
-function SaveLayoutLua()
+SaveLayoutLua = function()
 	-- string err AsyncStringToFile(...) - by default overwrites file
 	printDMsgOrErr(
 		AsyncStringToFile(layoutFileName, BuildLayoutLua()),
@@ -749,14 +831,14 @@ function SaveLayoutLua()
 		"Layout saving failed: " .. layoutFileNameNoPath)
 end
 
-function SaveLayoutsLua()
+SaveLayoutsLua = function()
 	printDMsgOrErr(
 		AsyncStringToFile(layoutsFileName, BuildLayoutsLua()),
 		'"Layouts.lua" updated',
 		'"Layouts.lua" update failed')
 end
 
-function UpdateLayoutsLua(firedByHotKey)
+UpdateLayoutsLua = function(firedByHotKey)
 	-- if function fired by hotkey, print date. Variable "firedByHotKey" will be "table" in that case.
 	if firedByHotKey then
 		printD(GetDate())
@@ -771,14 +853,14 @@ function UpdateLayoutsLua(firedByHotKey)
 	end
 end
 
--- function SaveMetadataLua()
+-- SaveMetadataLua = function()
 	-- printDMsgOrErr(
 		-- AsyncStringToFile(metadataFileName, BuildMetadataLua()),
 		-- '"metadata.lua" updated',
 		-- '"metadata.lua" update failed')
 -- end
 
-function WriteToFiles()
+WriteToFiles = function()
 	-- "items.lua" not needed. Empty is OK. It used by in-game "Mod Editor". ChoGGi says "Mod Editor" may corrupt mods on saving.
 	CreateLayoutPath()
 	SaveLayoutLua()
@@ -801,7 +883,7 @@ function WriteToFiles()
 	end
 end
 
-function SetBuildCategory()
+SetBuildCategory = function()
 	local itemList = {}
 	for i, id in ipairs(origMenuId) do
 		itemList[#itemList + 1] = {text = id, value = i}
@@ -827,7 +909,7 @@ end
 local IsDialogWindowOpen_Info = false
 local IsDialogWindowOpen_Params = false
 
-function LayoutSetParams()
+LayoutSetParams = function()
 	if IsDialogWindowOpen_Params then
 		-- If we close "Info" dialog window here, flag "IsDialogWindowOpen_Info" will remain "true".
 			-- If we hit hotkey to show "Info" window, it will not appear. So clear this flag.
@@ -851,13 +933,13 @@ function LayoutSetParams()
 	end
 end
 
-function LayoutSetRadius()
+LayoutSetRadius = function()
 	CreateRealTimeThread(function()
 		layoutSettings.radius = WaitInputText('Set "Capture radius":', tostring(layoutSettings.radius))
 	end)
 end
 
-function LayoutShowInfo()
+LayoutShowInfo = function()
 	if IsDialogWindowOpen_Info then
 		IsDialogWindowOpen_Info = false
 		IsDialogWindowOpen_Params = false
@@ -870,7 +952,7 @@ end
 
 local IsDialogWindowOpen_Delete = false
 
-function LayoutDelete()
+LayoutDelete = function()
 	if BlacklistEnabled() then
 		MsgPopupBE()
 		return
@@ -922,7 +1004,7 @@ function LayoutDelete()
 	}
 end
 
-function DeleteLayoutFile(fileName)
+DeleteLayoutFile = function(fileName)
 	printDMsgOrErr(
 		AsyncFileDelete(CurrentModPath .. "Code/Layout/" .. fileName),
 		"Layout deleted: " .. fileName,
@@ -934,7 +1016,7 @@ function DeleteLayoutFile(fileName)
 		"Icon deleting failed: " .. iconName)
 end
 
-function BuildLayoutHeadLua()
+BuildLayoutHeadLua = function()
 	local str = [[
 -- File is generated by "]] .. modName .. [["
 function OnMsg.ClassesPostprocess()
@@ -990,7 +1072,7 @@ end
 	-- end	of line, save line. Delete objects with no connections. Loop this algorithm	until we cannot find hub.
 	-- When loop is stopped, table with objects must be empty.
 
-function IsCables(type)
+IsCables = function(type)
 	if string.lower(type) == "cables" then
 		return true
 	else
@@ -998,7 +1080,7 @@ function IsCables(type)
 	end
 end
 
-function IsTubes(type)
+IsTubes = function(type)
 	if string.lower(type) == "tubes" then
 		return true
 	else
@@ -1006,15 +1088,15 @@ function IsTubes(type)
 	end
 end
 
-function Hex(q, r)
+Hex = function(q, r)
 	return { q = q, r = r, }
 end
 
-function HexEqual(hexA, hexB)
+HexEqual = function(hexA, hexB)
 	return hexA.q == hexB.q and hexA.r == hexB.r
 end
 
-function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
+HexObjLineAsStr = function(hexBegin, hexEnd, type, saveOrphan)
 	saveOrphan = saveOrphan or false
 	local str = ""
 	local template
@@ -1042,7 +1124,7 @@ function HexObjLineAsStr(hexBegin, hexEnd, type, saveOrphan)
 	return str
 end
 
-function IsHub(worldObj)
+IsHub = function(worldObj)
 	local entity = worldObj:GetEntity()
 	return	entity == "CableHub"       or entity == "TubeHub"       or
 			entity == "CableSwitch"    or entity == "TubeSwitch"    or
@@ -1051,7 +1133,7 @@ function IsHub(worldObj)
 end
 
 -- Make our objects - simpler version of in-game objects
-function HexObjs(worldObjs, baseHex)
+HexObjs = function(worldObjs, baseHex)
 	local hexObjs ={}
 	for id, obj in pairs(worldObjs) do
 		local q, r = WorldToHex(obj)
@@ -1082,7 +1164,7 @@ function HexObjs(worldObjs, baseHex)
 	return hexObjs
 end
 
-function HexNeighbor(hex, direction)
+HexNeighbor = function(hex, direction)
 	if direction < 1 or direction > 6 then
 		printD('HexNeighbor(): wrong "direction" parameter: ' .. direction)
 	end
@@ -1098,7 +1180,7 @@ function HexNeighbor(hex, direction)
 	return Hex(hex.q + dir.q, hex.r + dir.r)
 end
 
-function CheckBitConn(hexObj, direction)
+CheckBitConn = function(hexObj, direction)
 	-- Direction numeration begins from one. Bit numeration begins from zero.
 	local bitNum = direction - 1
 	if hexObj.conn & (1 << bitNum) ~= 0 then
@@ -1108,14 +1190,14 @@ function CheckBitConn(hexObj, direction)
 	end
 end
 
-function ClearBitConn(hexObj, direction)
+ClearBitConn = function(hexObj, direction)
 	-- Direction numeration begins from one. Bit numeration begins from zero.
 	local bitNum = direction - 1
 	-- "~" - invert operator
 	hexObj.conn = hexObj.conn & ~(1 << bitNum)
 end
 
-function AxialDirection(hexObj)
+AxialDirection = function(hexObj)
 	local direction = 0
 	local noMoreConnection = false
 	for i = 1, 6, 1 do
@@ -1131,7 +1213,7 @@ function AxialDirection(hexObj)
 	return direction, noMoreConnection
 end
 
-function BuildOrphans(hexObjs, type, strTbl)
+BuildOrphans = function(hexObjs, type, strTbl)
 	local table_remove = table.remove
 	local orphanNum = 0
 	for i = #hexObjs, 1, -1 do
@@ -1145,7 +1227,7 @@ function BuildOrphans(hexObjs, type, strTbl)
 	return orphanNum
 end
 
-function FindHub(hexObjs)
+FindHub = function(hexObjs)
 	for i, hexObj in ipairs(hexObjs) do
 		if hexObj.hub then
 			return hexObj
@@ -1154,7 +1236,7 @@ function FindHub(hexObjs)
 	return nil
 end
 
-function FindObjByHex(hexObjs, hex)
+FindObjByHex = function(hexObjs, hex)
 	for i, hexObj in ipairs(hexObjs) do
 		if HexEqual(hexObj.hex, hex) then
 			return hexObj
@@ -1163,7 +1245,7 @@ function FindObjByHex(hexObjs, hex)
 	return nil
 end
 
-function FindEndObj(hexObjs, hexObjBegin, direction)
+FindEndObj = function(hexObjs, hexObjBegin, direction)
 	local hexObjPrev = hexObjBegin
 	while (true) do
 		local hexNext = HexNeighbor(hexObjPrev.hex, direction)
@@ -1190,7 +1272,7 @@ function FindEndObj(hexObjs, hexObjBegin, direction)
 	end
 end
 
-function RemoveNoConn(hexObjs)
+RemoveNoConn = function(hexObjs)
 	local table_remove = table.remove
 	for i = #hexObjs, 1, -1 do
 		if hexObjs[i].conn == 0 then
@@ -1199,7 +1281,7 @@ function RemoveNoConn(hexObjs)
 	end
 end
 
-function BuildLines(hexObjs, type, strTbl)
+BuildLines = function(hexObjs, type, strTbl)
 	local lineNum = 0
 	while(true) do
 		local hexObjBegin = FindHub(hexObjs)
@@ -1224,7 +1306,7 @@ function BuildLines(hexObjs, type, strTbl)
 	return lineNum
 end
 
-function IsAllNeighbors(hexObjs, hexObj)
+IsAllNeighbors = function(hexObjs, hexObj)
 	-- AxialDirection() will change "conn" value, save it
 	local conn = hexObj.conn
 	local allNeighborsExist = true
@@ -1246,7 +1328,7 @@ function IsAllNeighbors(hexObjs, hexObj)
 	return allNeighborsExist, allNeighborsNotExist
 end
 
-function SetAdditionalOrphans(hexObjs)
+SetAdditionalOrphans = function(hexObjs)
 	for i, hexObj in ipairs(hexObjs) do
 		if hexObj.conn ~= 0 then
 			-- If "conn" parameter says object has neighbors, but actually all of them are absent -> this is orphan
@@ -1259,7 +1341,7 @@ function SetAdditionalOrphans(hexObjs)
 	end
 end
 
-function SetHubOnLineEnding(hexObjs)
+SetHubOnLineEnding = function(hexObjs)
 	for i, hexObj in ipairs(hexObjs) do
 		-- If "conn" parameter says object has neighbors, but actually at least one is absent -> this is end of line
 		local allNeighborsExist, allNeighborsNotExist = IsAllNeighbors(hexObjs, hexObj)
@@ -1269,7 +1351,7 @@ function SetHubOnLineEnding(hexObjs)
 	end
 end
 
-function BuildGrid(worldObjs, baseHex, type)
+BuildGrid = function(worldObjs, baseHex, type)
 	local strTbl = {"",}
 	if not TableEmpty(worldObjs) then
 		local comment
@@ -1307,7 +1389,7 @@ function BuildGrid(worldObjs, baseHex, type)
 end
 
 -- Get position of "base object". Position offset of all other objects will be calculated relative to it.
-function GetBaseObjectPosition()
+GetBaseObjectPosition = function()
 	local baseObj
 	-- ~= is equivalent of !=
 	-- Check if table is not empty
@@ -1327,7 +1409,7 @@ function GetBaseObjectPosition()
 	return Hex(q, r)
 end
 
-function BuildBuildings(worldObjs, baseHex)
+BuildBuildings = function(worldObjs, baseHex)
 	local str = ""
 	if not TableEmpty(worldObjs) then
 		str = str .. "\t\t-- Buildings\n"
@@ -1354,7 +1436,7 @@ function BuildBuildings(worldObjs, baseHex)
 	return str
 end
 
-function BuildCables(worldObjs, baseHex)
+BuildCables = function(worldObjs, baseHex)
 	local str = ""
 	-- Don't have "template_name" parameter, write it explicitly
 	-- Brute force variant, ugly result in game
@@ -1376,7 +1458,7 @@ function BuildCables(worldObjs, baseHex)
 end
 
 -- Save tube objects as lua objects, that can be used in "ZeroBrane Studio" (LUA IDE) for debugging
-function BuildTubesTesting(worldObjs, baseHex)
+BuildTubesTesting = function(worldObjs, baseHex)
 	local str = ""
 	-- Brute force variant
 	if not TableEmpty(worldObjs) then
@@ -1396,7 +1478,7 @@ function BuildTubesTesting(worldObjs, baseHex)
 	return str
 end
 
-function BuildLayoutBodyLua()
+BuildLayoutBodyLua = function()
 	-- Official documentation LuaFunctionDoc_hex.md.html
 	local str = ""
 	-- Base point (zero point)
@@ -1408,7 +1490,7 @@ function BuildLayoutBodyLua()
 	return str
 end
 
-function BuildLayoutTailLua()
+BuildLayoutTailLua = function()
 	local str = [[
 	})
 end
@@ -1416,12 +1498,12 @@ end
 	return str .. "\n\n\n\n"
 end
 
-function BuildLayoutLua()
+BuildLayoutLua = function()
 	return BuildLayoutHeadLua() .. BuildLayoutBodyLua() .. BuildLayoutTailLua()
 end
 
 -- Return list of files in "Code/Layout" folder
-function GetLayoutListFiles()
+GetLayoutListFiles = function()
 	local err, layoutListFiles = AsyncListFiles(CurrentModPath .. "Code/Layout", "*.lua", "relative, sorted")
 	printDMsgOrErr(
 		err,
@@ -1431,7 +1513,7 @@ function GetLayoutListFiles()
 end
 
 -- Not used anymore, only for history
--- function BuildMetadataLua()
+-- BuildMetadataLua = function()
 	-- local layoutListFiles = GetLayoutListFiles()
 	-- local strLayoutFiles = ""
 	-- for i, strFileName in ipairs(layoutListFiles) do
@@ -1481,7 +1563,7 @@ end
 	-- return str
 -- end
 
-function BuildLayoutsLua()
+BuildLayoutsLua = function()
 	local layoutListFiles = GetLayoutListFiles()
 	local str = ""
 	for i, strFileName in ipairs(layoutListFiles) do
@@ -1500,7 +1582,7 @@ end
 
 ---- Photo Mode ----
 
-function PhotoMode()
+PhotoMode = function()
 	ChoGGi.ComFuncs.QuestionBox(
 			"No way back! To restore view, you must reload game.",
 			function(answer)
@@ -1521,7 +1603,7 @@ function PhotoMode()
 end
 
 -- Copy-Paste from ChoGGi.MenuFuncs.TerrainTextureChange()
-function TerrainTextureChange(choice)
+TerrainTextureChange = function(choice)
 	local function RestoreSkins(label, temp_skin, idx)
 		for i = 1, #(label or "") do
 			local o = label[i]
