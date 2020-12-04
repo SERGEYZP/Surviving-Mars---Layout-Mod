@@ -24,7 +24,7 @@ return PlaceObj('ModDef', {
 	'author', "Kyklish",
 	'version_major', 1,
 	'version_minor', 0,
-	'version', 1,
+	'version', 2,
 	'lua_revision', 233360,
 	'saved_with_revision', 249143,
 	'code', {

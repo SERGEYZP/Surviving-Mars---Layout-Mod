@@ -128,7 +128,7 @@ local idLayoutPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 ---- DEBUG ----
 
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
-local DEBUG = true
+-- local DEBUG = true
 -- local DEBUG_EXAMINE = true
 -- local DEBUG_LUA = true
 
@@ -1762,6 +1762,8 @@ I WANT DELETE LAYOUT:
 	Press []] .. ShortcutUpdateLayoutsLua .. [[] to update "Layouts.lua" or capture new layout.
 I WANT ADD LAYOUT:
 	The same as "delete", but add files, then update "Layouts.lua".
+I WANT SHARE LAYOUT:
+	Share files in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
 DEBUG:
 	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
