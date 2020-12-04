@@ -143,17 +143,17 @@ function ClearBuildingTemplates()
 end
 
 -- ReloadLua() is in-game function name, don't use it!!!
-function Fixer_ReloadLua()
+function Kyklish_ReloadLua()
 	cls()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
 	-- Run in real time thread to show MsgPopup() properly!
 	-- Else it will be showed after ChoGGi_ReloadLua() finished. No sense.
 	CreateRealTimeThread(function()
-		MsgPopup("--------BEGIN-RELOAD-LUA--------")
+		MsgPopup("BEGIN RELOAD LUA")
 		Sleep(1000)
 		ChoGGi_ReloadLua()
-		MsgPopup("--------DONE-RELOAD-LUA---------")
+		MsgPopup("DONE RELOAD LUA")
 	end)
 end
 
@@ -231,7 +231,7 @@ function CreateShortcuts()
 	Actions[#Actions + 1] = {
 		ActionName = "Layout Reload Lua",
 		ActionId = "LCM.Reload.Lua",
-		OnAction = Fixer_ReloadLua,
+		OnAction = Kyklish_ReloadLua,
 		ActionShortcut = ShortcutReloadLua,
 		ActionBindable = true,
 	}
@@ -699,7 +699,7 @@ function LayoutCapture(captureIndoor)
 					-- Layout script by default skip creating object if it already exist in game.
 					-- Delete our layout object from in-game building's table.
 					-- So after reloading lua updated layout become visible.
-					-- I commented here, because I do it in Fixer_ReloadLua()
+					-- I commented here, because I do it in Kyklish_ReloadLua()
 					-- BuildingTemplates[idLayoutPrefix .. layoutSettings.id] = nil
 					WriteToFiles()
 				else
@@ -1445,33 +1445,34 @@ end
 			-- "id", "ChoGGi_Library",
 			-- "title", "ChoGGi's Library",
 			-- "version_major", 8,
-			-- "version_minor", 7,
+			-- "version_minor", 6,
 		-- }),
 		-- PlaceObj("ModDependency", {
 			-- "id", "ChoGGi_CheatMenu",
 			-- "title", "Expanded Cheat Menu",
 			-- "version_major", 15,
-			-- "version_minor", 7,
+			-- "version_minor", 6,
 		-- }),
 	-- },
-	-- 'title', "Layout Mod",
+	-- 'title', "Layout Capture Mod",
 	-- 'description', "Capture and save building's layout.",
-	-- 'image', "ModImage.png",
+	-- 'image', "Preview.png",
 	-- 'last_changes', "Initial release.",
-	-- 'id', "Fixer_Layout_Mod",
+	-- 'id', "Kyklish_Layout_Capture_Mod",
 	-- 'steam_id', "9876543210",
 	-- 'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
 	-- 'pops_any_uuid', "bbf577bf-dee0-4346-bad5-1037f6a827e7",
-	-- 'author', "Fixer",
-	-- 'version_major', 1,
+	-- 'author', "Kyklish",
 	-- 'version', 1,
+	-- 'version_major', 1,
+	-- 'version_minor', 0,
 	-- 'lua_revision', 233360,
 	-- 'saved_with_revision', 249143,
 	-- 'code', {
 		-- -- Main Code --
 		-- "Code/Script.lua",
-		-- -- Captured Layout --
--- ]] .. strLayoutFiles .. [[
+		-- -- Captured Layouts --
+		-- "Code/Layouts.lua",
 	-- },
 	-- 'saved', 1604768099,
 	-- 'TagTools', true,
