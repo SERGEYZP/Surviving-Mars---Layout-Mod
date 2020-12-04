@@ -143,7 +143,7 @@ function ClearBuildingTemplates()
 end
 
 -- ReloadLua() is in-game function name, don't use it!!!
-function Kyklish_ReloadLua()
+function LayoutReloadLua()
 	cls()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
@@ -231,7 +231,7 @@ function CreateShortcuts()
 	Actions[#Actions + 1] = {
 		ActionName = "Layout Reload Lua",
 		ActionId = "LCM.Reload.Lua",
-		OnAction = Kyklish_ReloadLua,
+		OnAction = LayoutReloadLua,
 		ActionShortcut = ShortcutReloadLua,
 		ActionBindable = true,
 	}
@@ -698,7 +698,7 @@ function LayoutCapture(captureIndoor)
 					-- Layout script by default skip creating object if it already exist in game.
 					-- Delete our layout object from in-game building's table.
 					-- So after reloading lua updated layout become visible.
-					-- I commented here, because I do it in Kyklish_ReloadLua()
+					-- I commented here, because I do it in LayoutReloadLua()
 					-- BuildingTemplates[idLayoutPrefix .. layoutSettings.id] = nil
 					WriteToFiles()
 				else
