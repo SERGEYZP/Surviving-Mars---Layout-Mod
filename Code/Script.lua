@@ -998,6 +998,7 @@ LayoutDelete = function()
 			'Delete file: ' .. file .. '"?\nRelative icon will be deleted too!',
 			function(answer)
 				if answer then
+					BuildingTemplates[idLayoutPrefix .. GetIdFromFileName(file)] = nil
 					DeleteLayoutFile(file)
 					UpdateLayoutsLua()
 				end
