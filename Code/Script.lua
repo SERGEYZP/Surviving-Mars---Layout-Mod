@@ -1733,11 +1733,16 @@ SET PARAMS:
 	Press [Ctrl-M] and measure radius of building's layout. Press []] .. ShortcutSetRadius .. [[] to set capture radius.
 	Press []] .. ShortcutSetParams .. [[] and set layout's params.
 	In "Choose Building Menu" window choose building menu by double click, or ignore it (previous selected menu category will be used).
-	In debug mode additional window "Edit Object" will appear, "building_category" value will not be updated after double click, but will be saved anyway!
+	In debug mode additional window "Edit Object" will appear, "building_category" value will not be updated after double click,
+		but will be saved anyway!
 	Set parameters in "Edit Object" window:
 		"build_category" (allowed number from 1 to ]] .. #origMenuId .. [[) in which menu captured layout will be placed.
 		"build_pos" (number from 0 to 99, can be duplicated) position in build menu.
 		"description", "display_name" - as you like.
+			Example: "Text.<newline>Text on new line.\nAnother line."
+			Example: "<red>Red text</red>, <em>yellow text</em>."
+			Example: "<left>Left alignment.<right>Right alignment.<center>Center alignment."
+			Example: "<image UI/Common/rollover_line.tga 2000>"
 		"id" (must be unique, allowed "CamelCase" or "snake_case" notation, allowed characters [_a-zA-Z0-9]) internal script parameter,
 			additionally will be used as part of file name of layout's lua script and as file name for layout's icon.
 		"radius" (positive number [to infinity and beyond]) capture radius in meters.
@@ -1763,7 +1768,8 @@ I WANT DELETE LAYOUT:
 I WANT ADD LAYOUT:
 	The same as "delete", but add files, then update "Layouts.lua".
 I WANT SHARE LAYOUT:
-	Share files in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
+	Share layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
+	Share icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
 DEBUG:
 	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
 
