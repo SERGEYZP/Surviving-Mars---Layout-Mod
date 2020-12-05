@@ -912,7 +912,13 @@ SetBuildCategory = function()
 	}
 end
 
+local doneSetParams = true
+
 LayoutSetParams = function()
+	-- Exit if user still setting params. Fix double press on hotkey shows WaitInputText() twice
+	if not doneSetParams then
+		return
+	end
 	if IsDialogWindowOpen_Params then
 		-- If we close "Info" dialog window here, flag "IsDialogWindowOpen_Info" will remain "true".
 			-- If we hit hotkey to show "Info" window, it will not appear. So clear this flag.
@@ -922,6 +928,7 @@ LayoutSetParams = function()
 		ChoGGi.ComFuncs.CloseDialogsECM()
 	else
 		IsDialogWindowOpen_Params = true
+		doneSetParams = false
 		CreateRealTimeThread(function()
 			layoutSettings.id           = WaitInputText('Set "id":', layoutSettings.id)
 			layoutSettings.display_name = WaitInputText('Set "Display name":', layoutSettings.display_name)
@@ -932,6 +939,7 @@ LayoutSetParams = function()
 				ChoGGi.ComFuncs.OpenInObjectEditorDlg(layoutSettings)
 			end
 			SetBuildCategory()
+			doneSetParams = true
 		end)
 	end
 end
