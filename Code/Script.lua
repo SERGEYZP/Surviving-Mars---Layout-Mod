@@ -883,6 +883,9 @@ WriteToFiles = function()
 	end
 end
 
+local IsDialogWindowOpen_Info = false
+local IsDialogWindowOpen_Params = false
+
 SetBuildCategory = function()
 	local itemList = {}
 	for i, id in ipairs(origMenuId) do
@@ -890,6 +893,9 @@ SetBuildCategory = function()
 	end
 
 	local function CallBackFunc(choice)
+		if not DEBUG then
+			IsDialogWindowOpen_Params = false
+		end
 		if choice.nothing_selected then
 			return
 		end
@@ -905,9 +911,6 @@ SetBuildCategory = function()
 		width = 150.0,
 	}
 end
-
-local IsDialogWindowOpen_Info = false
-local IsDialogWindowOpen_Params = false
 
 LayoutSetParams = function()
 	if IsDialogWindowOpen_Params then
