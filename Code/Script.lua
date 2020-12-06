@@ -1626,10 +1626,11 @@ end
 CalculateLayoutMaintenance = function()
 	local maintenance = GetResourcesTable()
 	for i, obj in ipairs(buildings) do
-		local amount = obj:GetProperty("maintenance_resource_amount")
-		local type   = obj:GetProperty("maintenance_resource_type")
+		local amount = obj:GetProperty("maintenance_resource_amount") or 0
+		local type   = obj:GetProperty("maintenance_resource_type")   or "no_maintenance"
 		type = string.lower(type)
 		if type == "no_maintenance" then
+			-- do nothing
 		elseif not maintenance[type] then
 			print("No such resource: " .. type)
 		else
