@@ -361,11 +361,11 @@ end
 -- Path to menu icon
 local menuIcon = "UI/MenuIcon.png"
 -- Display name of each menu
-local displayName = "Layout"
+local menuDisplayName = "Layout"
 -- Add this prefix to id of original menu to create id for my menus: "Layout Infrastructure"
-local idMenuPrefix = "Layout "
+local menuIdPrefix = "Layout "
 -- Add suffix to id of original menu to create description for my menus: "Infrastructure Layouts"
-local descrSuffix = " Layouts"
+local menuDescrSuffix = " Layouts"
 -- Table with id of original menus. Surviving Mars have 14 menus. Look in ~BuildCategories table
 local origMenuId = {
 	[1]  = "Infrastructure",
@@ -390,7 +390,7 @@ local menuId = {}
 CreateMenus = function()
 	-- Create id for my submenus
 	for i, id in ipairs(origMenuId) do
-		menuId[i] = idMenuPrefix .. id
+		menuId[i] = menuIdPrefix .. id
 	end
 	
 	-- Create root menu
@@ -402,7 +402,7 @@ CreateMenus = function()
 		-- In source code developers don't use PlaceObj(...), so we too
 		bc[#bc + 1] = {
 			id = id,
-			name = displayName,
+			name = menuDisplayName,
 			image = CurrentModPath .. menuIcon,
 			-- “on hover” effects; this should probably always be "UI/Icons/bmc_infrastructure_shine.tga" to have the default “on hover” effect
 			-- Not needed? Works well without them
@@ -429,8 +429,8 @@ CreateMenus = function()
 				category = origMenuId[i],
 				-- Unknown, will set equal to id
 				category_name = id,
-				display_name = displayName,
-				description = origMenuId[i] .. descrSuffix,
+				display_name = menuDisplayName,
+				description = origMenuId[i] .. menuDescrSuffix,
 				icon = CurrentModPath .. menuIcon,
 				-- Unknown
 				group = "Default",
