@@ -41,6 +41,7 @@
 
 ---- Forward function declaration ----
 -- All functions are "local", we hide them from global scope, other mods will not see them
+local abs
 local AllObjectsTablesEmpty
 local AxialDirection
 local BlacklistEnabled
@@ -56,8 +57,11 @@ local BuildLines
 local BuildMetadataLua
 local BuildOrphans
 local BuildTubesTesting
+local CalculateBuildingsCost
+local CalculateGridCost
+local CalculateLayoutConsumption
 local CalculateLayoutCost
-local CalculateObjsCost
+local CalculateLayoutMaintenance
 local CaptureObjects
 local CheckBitConn
 local CheckInputParams
@@ -72,13 +76,16 @@ local FileExist
 local FindEndObj
 local FindHub
 local FindObjByHex
+local FormatResourceStr
 local GetBaseObjectPosition
 local GetDate
 local GetIdFromFileName
 local GetIdList
 local GetLayoutListFiles
 local GetObjsByEntity
+local GetResourcesTable
 local Hex
+local HexDistance
 local HexEqual
 local HexNeighbor
 local HexObjLineAsStr
@@ -99,6 +106,7 @@ local LayoutSetRadius
 local LayoutShowInfo
 local MsgPopup
 local MsgPopupBE
+local NoResource
 local PhotoMode
 local printD
 local printDMsgOrErr
@@ -130,7 +138,7 @@ local layoutIdPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 ---- DEBUG ----
 
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
--- local DEBUG = true
+local DEBUG = true
 -- local DEBUG_EXAMINE = true
 -- local DEBUG_LUA = true
 
@@ -228,7 +236,7 @@ end
 
 -- ReloadLua() is in-game function name, don't use it!!!
 LayoutReloadLua = function()
-	cls()
+	-- cls()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
 	-- Run in real time thread to show MsgPopup() properly!
@@ -459,8 +467,12 @@ end
 
 local GUIDE
 -- Bad coding, global vars :(
+-- World objects
 local buildings, cables, tubes
+-- Save grid lines' distance to calculate build cost
+local gridLineDistance
 
+-- File names and paths
 local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
 
 local default_build_category = #origMenuId
@@ -1102,12 +1114,21 @@ IsTubes = function(type)
 	end
 end
 
+abs = function(x)
+	if x < 0 then x = 0 - x end
+	return x
+end
+
 Hex = function(q, r)
 	return { q = q, r = r, }
 end
 
-HexEqual = function(hexA, hexB)
-	return hexA.q == hexB.q and hexA.r == hexB.r
+HexDistance = function(a, b)
+	return (abs(a.q - b.q) + abs(a.q + a.r - b.q - b.r) + abs(a.r - b.r)) / 2
+end
+
+HexEqual = function(a, b)
+	return a.q == b.q and a.r == b.r
 end
 
 HexObjLineAsStr = function(hexBegin, hexEnd, type, saveOrphan)
@@ -1133,7 +1154,8 @@ HexObjLineAsStr = function(hexBegin, hexEnd, type, saveOrphan)
 			"pos", point(]] .. hexBegin.q .. [[, ]] .. hexBegin.r .. [[),
 			"cur_pos1", point(]] .. hexEnd.q .. [[, ]] .. hexEnd.r .. [[),
 		}),]] .. "\n\n"
-		printD(type .. ": Line=" .. hexBegin.q .. "," .. hexBegin.r .. "|" .. hexEnd.q .. "," .. hexEnd.r)
+		gridLineDistance[#gridLineDistance + 1] = HexDistance(hexBegin, hexEnd)
+		printD(type .. ": Line=" .. hexBegin.q .. "," .. hexBegin.r .. "|" .. hexEnd.q .. "," .. hexEnd.r .. " Distance=" .. HexDistance(hexBegin, hexEnd))
 	end
 	return str
 end
@@ -1492,50 +1514,133 @@ BuildTubesTesting = function(worldObjs, baseHex)
 	return str
 end
 
-CalculateObjsCost = function(cost, objs)
-	for i, obj in ipairs(objs) do
-		cost.blackCube      = cost.blackCube      + (obj.construction_cost_BlackCube      or 0)
-		cost.concrete       = cost.concrete       + (obj.construction_cost_Concrete       or 0)
-		cost.electronics    = cost.electronics    + (obj.construction_cost_Electronics    or 0)
-		cost.machineParts   = cost.machineParts   + (obj.construction_cost_MachineParts   or 0)
-		cost.metals         = cost.metals         + (obj.construction_cost_Metals         or 0)
-		cost.polymers       = cost.polymers       + (obj.construction_cost_Polymers       or 0)
-		cost.preciousMetals = cost.preciousMetals + (obj.construction_cost_PreciousMetals or 0)
-		cost.wasteRock      = cost.wasteRock      + (obj.construction_cost_WasteRock      or 0)
-	end
-end
-
-CalculateLayoutCost = function()
-	-- local scale = const.ResourceScale
-	local cost = {
+GetResourcesTable = function()
+	local tbl = {
 		blackCube = 0,
 		concrete = 0,
 		electronics = 0,
-		machineParts = 0,
+		machineparts = 0,
 		metals = 0,
 		polymers = 0,
-		preciousMetals = 0,
+		preciousmetals = 0,
 		wasteRock = 0,
 	}
-	CalculateObjsCost(cost, buildings)
-	CalculateObjsCost(cost, cables)
-	CalculateObjsCost(cost, tubes)
-	-- Order like in game, I suppose
-	local str = "<newline><newline>Cost: "
-	if cost.concrete       > 0 then str = str .. "<concrete("        .. cost.concrete       .. ")> " end
-	if cost.metals         > 0 then str = str .. "<metals("          .. cost.metals         .. ")> " end
-	if cost.polymers       > 0 then str = str .. "<polymers("        .. cost.polymers       .. ")> " end
-	if cost.electronics    > 0 then str = str .. "<electronics("     .. cost.electronics    .. ")> " end
-	if cost.machineParts   > 0 then str = str .. "<machineparts("    .. cost.machineParts   .. ")> " end
-	if cost.preciousMetals > 0 then str = str .. "<preciousmetals("  .. cost.preciousMetals .. ")> " end
-	if cost.wasteRock      > 0 then str = str .. "<wasterock("       .. cost.wasteRock      .. ")> " end
-	if cost.blackCube      > 0 then str = str .. "<mysteryresource(" .. cost.blackCube      .. ")> " end
-	printD(cost)
+	return tbl
+end
+
+NoResource = function(tbl)
+	local sum = 0
+	for k, v in pairs(tbl) do
+		sum = sum + v
+	end
+	if sum == 0 then
+		return true
+	else
+		return false
+	end
+end
+
+CalculateBuildingsCost = function(cost)
+	for i, obj in ipairs(buildings) do
+		cost.blackCube      = cost.blackCube      + obj.base_construction_cost_BlackCube
+		cost.concrete       = cost.concrete       + obj.base_construction_cost_Concrete
+		cost.electronics    = cost.electronics    + obj.base_construction_cost_Electronics
+		cost.machineparts   = cost.machineparts   + obj.base_construction_cost_MachineParts
+		cost.metals         = cost.metals         + obj.base_construction_cost_Metals
+		cost.polymers       = cost.polymers       + obj.base_construction_cost_Polymers
+		cost.preciousmetals = cost.preciousmetals + obj.base_construction_cost_PreciousMetals
+		cost.wasteRock      = cost.wasteRock      + obj.base_construction_cost_WasteRock
+	end
+end
+
+-- TODO Неправильно считает трубы и кабеля
+CalculateGridCost = function(cost)
+	-- Grid cost: 1 metal for each 5 hexes-long section
+	for i, dist in ipairs(gridLineDistance) do
+		local metals = 0
+		if dist == 0 then
+			-- Orphan distance == 0
+			metals = 1
+		else
+			-- "//" is floor (integer) division
+			metals = metals + dist // 5
+			if dist % 5 > 0 then
+				-- Less than 5 hexes-long section cost 1 metal too
+				metals = metals + 1
+			end
+		end
+		cost.metals = cost.metals + metals * const.ResourceScale
+	end
+end
+
+FormatResourceStr = function(resource)
+	-- I suppose order like in game
+	local str = ""
+	if resource.concrete       > 0 then str = str .. "<concrete("        .. resource.concrete       .. ")> " end
+	if resource.metals         > 0 then str = str .. "<metals("          .. resource.metals         .. ")> " end
+	if resource.polymers       > 0 then str = str .. "<polymers("        .. resource.polymers       .. ")> " end
+	if resource.electronics    > 0 then str = str .. "<electronics("     .. resource.electronics    .. ")> " end
+	if resource.machineparts   > 0 then str = str .. "<machineparts("    .. resource.machineparts   .. ")> " end
+	if resource.preciousmetals > 0 then str = str .. "<preciousmetals("  .. resource.preciousmetals .. ")> " end
+	if resource.wasteRock      > 0 then str = str .. "<wasterock("       .. resource.wasteRock      .. ")> " end
+	if resource.blackCube      > 0 then str = str .. "<mysteryresource(" .. resource.blackCube      .. ")> " end
 	return str
 end
 
+CalculateLayoutCost = function()
+	local cost = GetResourcesTable()
+	CalculateBuildingsCost(cost)
+	-- CalculateGridCost(cost)
+	if DEBUG then
+		printD("Cost (without grid):")
+		-- Only direct call print() will print formatted table
+		print(cost)
+	end
+	if NoResource(cost) then
+		return ""
+	else
+		return "<newline><newline>Cost (without grid): " .. FormatResourceStr(cost)
+	end
+end
+
+-- TODO Заглушка, ничего не считает
+CalculateLayoutConsumption = function()
+	local consumption = GetResourcesTable()
+	if NoResource(consumption) then
+		return ""
+	else
+		return "<newline><newline>Consumption: " .. FormatResourceStr(consumption)
+	end
+end
+
+CalculateLayoutMaintenance = function()
+	local maintenance = GetResourcesTable()
+	for i, obj in ipairs(buildings) do
+		local amount = obj:GetProperty("maintenance_resource_amount")
+		local type   = obj:GetProperty("maintenance_resource_type")
+		type = string.lower(type)
+		if type == "no_maintenance" then
+		elseif not maintenance[type] then
+			print("No such resource: " .. type)
+		else
+			maintenance[type] = maintenance[type] + amount
+		end
+	end
+	if DEBUG then
+		printD("Maintenance:")
+		-- Only direct call print() will print formatted table
+		print(maintenance)
+	end
+	if NoResource(maintenance) then
+		return ""
+	else
+		return "Maintenance: " .. FormatResourceStr(maintenance)
+	end
+end
+
 BuildLayoutBodyLua = function()
-	-- Official documentation LuaFunctionDoc_hex.md.html
+	-- Reset global var for new usage
+	gridLineDistance = {}
 	local str = ""
 	-- Base point (zero point)
 	local baseHex = GetBaseObjectPosition()
@@ -1555,8 +1660,30 @@ end
 end
 
 BuildLayoutLua = function()
-	local layoutCost = CalculateLayoutCost()
-	return BuildLayoutHeadLua(layoutCost) .. BuildLayoutBodyLua() .. BuildLayoutTailLua()
+	-- Reverse order is important, BuildLayoutBodyLua() prepares data for Calculate*() functions!
+	local tail = BuildLayoutTailLua()
+	local body = BuildLayoutBodyLua()
+	if DEBUG then
+		printD("LineDistance:")
+		-- Only direct call print() will print formatted table
+		print(gridLineDistance)
+	end
+	local layoutDescrSuffix = ""
+	local cost        = CalculateLayoutCost()
+	local consumption = CalculateLayoutConsumption()
+	local maintenance = CalculateLayoutMaintenance()
+	layoutDescrSuffix = layoutDescrSuffix .. cost
+	layoutDescrSuffix = layoutDescrSuffix .. consumption
+	if maintenance ~= "" then
+		if consumption ~= "" then
+			layoutDescrSuffix = layoutDescrSuffix .. "<newline>"
+		else
+			layoutDescrSuffix = layoutDescrSuffix .. "<newline><newline>"
+		end
+		layoutDescrSuffix = layoutDescrSuffix .. maintenance
+	end
+	local head = BuildLayoutHeadLua(layoutDescrSuffix)
+	return head .. body .. tail
 end
 
 -- Return list of files in "Code/Layout" folder
