@@ -1552,14 +1552,14 @@ end
 
 CalculateBuildingsCost = function(cost)
 	for i, obj in ipairs(buildings) do
-		cost.blackCube      = cost.blackCube      + obj.base_construction_cost_BlackCube
-		cost.concrete       = cost.concrete       + obj.base_construction_cost_Concrete
-		cost.electronics    = cost.electronics    + obj.base_construction_cost_Electronics
-		cost.machineparts   = cost.machineparts   + obj.base_construction_cost_MachineParts
-		cost.metals         = cost.metals         + obj.base_construction_cost_Metals
-		cost.polymers       = cost.polymers       + obj.base_construction_cost_Polymers
-		cost.preciousmetals = cost.preciousmetals + obj.base_construction_cost_PreciousMetals
-		cost.wasteRock      = cost.wasteRock      + obj.base_construction_cost_WasteRock
+		cost.blackCube      = cost.blackCube      + (obj:GetProperty("base_construction_cost_BlackCube")      or 0)
+		cost.concrete       = cost.concrete       + (obj:GetProperty("base_construction_cost_Concrete")       or 0)
+		cost.electronics    = cost.electronics    + (obj:GetProperty("base_construction_cost_Electronics")    or 0)
+		cost.machineparts   = cost.machineparts   + (obj:GetProperty("base_construction_cost_MachineParts")   or 0)
+		cost.metals         = cost.metals         + (obj:GetProperty("base_construction_cost_Metals")         or 0)
+		cost.polymers       = cost.polymers       + (obj:GetProperty("base_construction_cost_Polymers")       or 0)
+		cost.preciousmetals = cost.preciousmetals + (obj:GetProperty("base_construction_cost_PreciousMetals") or 0)
+		cost.wasteRock      = cost.wasteRock      + (obj:GetProperty("base_construction_cost_WasteRock")      or 0)
 	end
 end
 
