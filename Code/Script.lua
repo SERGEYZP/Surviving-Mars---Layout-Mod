@@ -84,6 +84,7 @@ local GetIdList
 local GetLayoutListFiles
 local GetObjsByEntity
 local GetResourcesTable
+local GetSupplyTable
 local Hex
 local HexDistance
 local HexEqual
@@ -1528,6 +1529,15 @@ GetResourcesTable = function()
 	return tbl
 end
 
+GetSupplyTable = function()
+	local tbl = {
+		air = 0,
+		electricity = 0,
+		water = 0,
+	}
+	return tbl
+end
+
 NoData = function(tbl)
 	local sum = 0
 	for k, v in pairs(tbl) do
@@ -1605,7 +1615,7 @@ end
 
 -- TODO Заглушка, ничего не считает
 CalculateLayoutConsumption = function()
-	local consumption = GetResourcesTable()
+	local consumption = GetSupplyTable()
 	if NoData(consumption) then
 		return ""
 	else
