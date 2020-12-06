@@ -106,7 +106,7 @@ local LayoutSetRadius
 local LayoutShowInfo
 local MsgPopup
 local MsgPopupBE
-local NoResource
+local NoData
 local PhotoMode
 local printD
 local printDMsgOrErr
@@ -1528,7 +1528,7 @@ GetResourcesTable = function()
 	return tbl
 end
 
-NoResource = function(tbl)
+NoData = function(tbl)
 	local sum = 0
 	for k, v in pairs(tbl) do
 		sum = sum + v
@@ -1596,7 +1596,7 @@ CalculateLayoutCost = function()
 		-- Only direct call print() will print formatted table
 		print(cost)
 	end
-	if NoResource(cost) then
+	if NoData(cost) then
 		return ""
 	else
 		return "<newline><newline>Cost (without grid): " .. FormatResourceStr(cost)
@@ -1606,7 +1606,7 @@ end
 -- TODO Заглушка, ничего не считает
 CalculateLayoutConsumption = function()
 	local consumption = GetResourcesTable()
-	if NoResource(consumption) then
+	if NoData(consumption) then
 		return ""
 	else
 		return "<newline><newline>Consumption: " .. FormatResourceStr(consumption)
@@ -1631,7 +1631,7 @@ CalculateLayoutMaintenance = function()
 		-- Only direct call print() will print formatted table
 		print(maintenance)
 	end
-	if NoResource(maintenance) then
+	if NoData(maintenance) then
 		return ""
 	else
 		return "Maintenance: " .. FormatResourceStr(maintenance)
