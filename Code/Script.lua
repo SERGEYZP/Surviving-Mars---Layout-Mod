@@ -77,6 +77,7 @@ local FindEndObj
 local FindHub
 local FindObjByHex
 local FormatResourceStr
+local FormatSupplyStr
 local GetBaseObjectPosition
 local GetDate
 local GetIdFromFileName
@@ -1597,6 +1598,14 @@ FormatResourceStr = function(resource)
 	return str
 end
 
+FormatSupplyStr = function(supply)
+	local str = ""
+	if supply.electricity > 0 then str = str .. "<power(" .. supply.electricity .. ")> " end
+	if supply.air         > 0 then str = str .. "<air("   .. supply.air         .. ")> " end
+	if supply.water       > 0 then str = str .. "<water(" .. supply.water       .. ")> " end
+	return str
+end
+
 CalculateLayoutCost = function()
 	local cost = GetResourcesTable()
 	CalculateBuildingsCost(cost)
@@ -1616,10 +1625,20 @@ end
 -- TODO Заглушка, ничего не считает
 CalculateLayoutConsumption = function()
 	local consumption = GetSupplyTable()
+	for i, obj in ipairs(buildings) do
+		consumption.air         = consumption.air         + (obj:GetProperty("air_consumption")         or 0)
+		consumption.electricity = consumption.electricity + (obj:GetProperty("electricity_consumption") or 0)
+		consumption.water       = consumption.water       + (obj:GetProperty("water_consumption")       or 0)
+	end
+	if DEBUG then
+		printD("Consumption:")
+		-- Only direct call print() will print formatted table
+		print(consumption)
+	end
 	if NoData(consumption) then
 		return ""
 	else
-		return "<newline><newline>Consumption: " .. FormatResourceStr(consumption)
+		return "<newline><newline>Consumption: " .. FormatSupplyStr(consumption)
 	end
 end
 
