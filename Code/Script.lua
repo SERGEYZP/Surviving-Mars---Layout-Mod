@@ -59,7 +59,7 @@ local BuildOrphans
 local BuildTubesTesting
 local CalculateBuildingsCost
 local CalculateGridCost
-local CalculateLayoutConsumption
+local CalculateLayoutConsumptionProduction
 local CalculateLayoutCost
 local CalculateLayoutMaintenance
 local CaptureObjects
@@ -68,6 +68,7 @@ local CheckInputParams
 local ChoGGi_ReloadLua
 local ClearBitConn
 local ClearBuildingTemplates
+local ConsumptionVsProduction
 local CreateLayoutPath
 local CreateMenus
 local CreateShortcuts
@@ -108,7 +109,7 @@ local LayoutSetRadius
 local LayoutShowInfo
 local MsgPopup
 local MsgPopupBE
-local NoData
+local DataPresent
 local PhotoMode
 local printD
 local printDMsgOrErr
@@ -1539,12 +1540,12 @@ GetSupplyTable = function()
 	return tbl
 end
 
-NoData = function(tbl)
+DataPresent = function(tbl)
 	local sum = 0
 	for k, v in pairs(tbl) do
 		sum = sum + v
 	end
-	if sum == 0 then
+	if sum ~= 0 then
 		return true
 	else
 		return false
@@ -1615,31 +1616,51 @@ CalculateLayoutCost = function()
 		-- Only direct call print() will print formatted table
 		print(cost)
 	end
-	if NoData(cost) then
+	if not DataPresent(cost) then
 		return ""
 	else
 		return "<newline><newline>Cost (without grid): " .. FormatResourceStr(cost)
 	end
 end
 
--- TODO Заглушка, ничего не считает
-CalculateLayoutConsumption = function()
+ConsumptionVsProduction = function(consumption, production)
+	
+end
+
+CalculateLayoutConsumptionProduction = function()
 	local consumption = GetSupplyTable()
+	local production  = GetSupplyTable()
 	for i, obj in ipairs(buildings) do
 		consumption.air         = consumption.air         + (obj:GetProperty("air_consumption")         or 0)
 		consumption.electricity = consumption.electricity + (obj:GetProperty("electricity_consumption") or 0)
 		consumption.water       = consumption.water       + (obj:GetProperty("water_consumption")       or 0)
+		production.air          = production.air          + (obj:GetProperty("air_production")          or 0)
+		production.electricity  = production.electricity  + (obj:GetProperty("electricity_production")  or 0)
+		production.water        = production.water        + (obj:GetProperty("water_production")        or 0)
 	end
+	ConsumptionVsProduction(consumption, production)
 	if DEBUG then
 		printD("Consumption:")
 		-- Only direct call print() will print formatted table
 		print(consumption)
+		printD("Production:")
+		-- Only direct call print() will print formatted table
+		print(production)
 	end
-	if NoData(consumption) then
-		return ""
-	else
-		return "<newline><newline>Consumption: " .. FormatSupplyStr(consumption)
+	local str = ""
+	if DataPresent(consumption) or DataPresent(production) then
+		str = str .. "<newline><newline>"
 	end
+	if DataPresent(consumption) then
+		str = str .. "Consumption: " .. FormatSupplyStr(consumption)
+	end
+	if DataPresent(production) then
+		if DataPresent(consumption) then
+			str = str .. "<newline>"
+		end
+		str = str .. "Production: " .. FormatSupplyStr(production)
+	end
+	return str
 end
 
 CalculateLayoutMaintenance = function()
@@ -1661,7 +1682,7 @@ CalculateLayoutMaintenance = function()
 		-- Only direct call print() will print formatted table
 		print(maintenance)
 	end
-	if NoData(maintenance) then
+	if not DataPresent(maintenance) then
 		return ""
 	else
 		return "Maintenance: " .. FormatResourceStr(maintenance)
@@ -1700,7 +1721,7 @@ BuildLayoutLua = function()
 	end
 	local layoutDescrSuffix = ""
 	local cost        = CalculateLayoutCost()
-	local consumption = CalculateLayoutConsumption()
+	local consumption = CalculateLayoutConsumptionProduction()
 	local maintenance = CalculateLayoutMaintenance()
 	layoutDescrSuffix = layoutDescrSuffix .. cost
 	layoutDescrSuffix = layoutDescrSuffix .. consumption
