@@ -142,7 +142,7 @@ local layoutIdPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 ---- DEBUG ----
 
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
-local DEBUG = true
+-- local DEBUG = true
 -- local DEBUG_EXAMINE = true
 -- local DEBUG_LUA = true
 
@@ -1629,12 +1629,12 @@ CalculateLayoutCost = function()
 	local cost = GetResourcesTable()
 	CalculateBuildingsCost(cost)
 	-- CalculateGridCost(cost)
-	printD("Cost (without supply grid):")
+	printD("Cost (w/o grid):")
 	printD(cost)
 	if not DataPresent(cost) then
 		return ""
 	else
-		return "<newline><newline>Cost (without grid): " .. FormatResourceStr(cost)
+		return "<newline><newline>Cost (w/o grid): " .. FormatResourceStr(cost)
 	end
 end
 
