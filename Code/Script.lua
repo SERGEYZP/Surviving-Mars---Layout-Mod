@@ -125,7 +125,8 @@ local SetAllFileNames
 local SetBuildCategory
 local SetHubOnLineEnding
 local TableEmpty
-local TableToString
+local TableToStringI
+local TableToStringK
 local TerrainTextureChange
 local TrimSpace
 local UpdateLayoutsLua
@@ -491,11 +492,9 @@ local layoutSettings = {
 	radius = default_radius,
 }
 
--- Forward declaration with this function not work.
--- If make forward declaration and place function's body below "local GUIDE", "local GUIDE" will call nil "TableToString" variable
-TableToString = function(inputTable)
+TableToStringI = function(tbl)
 	local str = ""
-	for i, v in ipairs(inputTable) do
+	for i, v in ipairs(tbl) do
 		str = str .. "\t\t"
 		if i < 10 then
 			-- Shift line with one digit [1-9] to right
@@ -503,6 +502,22 @@ TableToString = function(inputTable)
 		end
 		str = str .. i .. "\t== " .. v .. "\n"
 	end
+	return str
+end
+
+TableToStringK = function(tbl)
+	local tkeys = {}
+	-- populate the table that holds the keys
+	for k in pairs(tbl) do table.insert(tkeys, k) end
+	-- sort the keys
+	table.sort(tkeys)
+	
+	local str = "{ "
+	-- use the keys to retrieve the values in the sorted order
+	for _, k in ipairs(tkeys) do
+		str = str .. k .. " = " .. tbl[k] .. ", "
+	end
+	str = str .. "}"
 	return str
 end
 
@@ -2006,7 +2021,7 @@ I WANT SHARE LAYOUT:
 	Share layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
 	Share icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
 DEBUG:
-	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToString(origMenuId)
+	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToStringI(origMenuId)
 
 
 
