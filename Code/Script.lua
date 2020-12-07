@@ -147,19 +147,22 @@ local DEBUG = true
 -- local DEBUG_LUA = true
 
 -- Print to "Layout Mod" log file
-printL = function(str)
-	str = str:gsub("\n", "\n\t")
-	print("[LCM] " .. str)
+printL = function(data)
+	if type(data) == "table" then
+		data = TableToStringK(data)
+	end
+	data = data:gsub("\n", "\n\t")
+	print("[LCM] " .. data)
 	if BlacklistEnabled() then
 		return
 	end
 	-- -1 - append to file
-	AsyncStringToFile(CurrentModPath .. "log.txt", str .. "\n", -1)
+	AsyncStringToFile(CurrentModPath .. "log.txt", data .. "\n", -1)
 end
 
-printD = function(str)
+printD = function(data)
 	if DEBUG then
-		printL(str)
+		printL(data)
 	end
 end
 
@@ -1626,11 +1629,8 @@ CalculateLayoutCost = function()
 	local cost = GetResourcesTable()
 	CalculateBuildingsCost(cost)
 	-- CalculateGridCost(cost)
-	if DEBUG then
-		printD("Cost (without grid):")
-		-- Only direct call print() will print formatted table
-		print(cost)
-	end
+	printD("Cost (without supply grid):")
+	printD(cost)
 	if not DataPresent(cost) then
 		return ""
 	else
@@ -1638,8 +1638,16 @@ CalculateLayoutCost = function()
 	end
 end
 
-ConsumptionVsProduction = function(consumption, production)
-	
+ConsumptionVsProduction = function(c, p)
+	for key, val in pairs(c) do
+		if c[key] > p[key] then
+			c[key] = c[key] - p[key]
+			p[key] = 0
+		else
+			p[key] = p[key] - c[key]
+			c[key] = 0
+		end
+	end
 end
 
 CalculateLayoutConsumptionProduction = function()
@@ -1653,15 +1661,16 @@ CalculateLayoutConsumptionProduction = function()
 		production.electricity  = production.electricity  + (obj:GetProperty("electricity_production")  or 0)
 		production.water        = production.water        + (obj:GetProperty("water_production")        or 0)
 	end
+	printD("Consumption:")
+	printD(consumption)
+	printD("Production:")
+	printD(production)
 	ConsumptionVsProduction(consumption, production)
-	if DEBUG then
-		printD("Consumption:")
-		-- Only direct call print() will print formatted table
-		print(consumption)
-		printD("Production:")
-		-- Only direct call print() will print formatted table
-		print(production)
-	end
+	printD("ConsumptionVsProduction calc result:")
+	printD("Consumption*:")
+	printD(consumption)
+	printD("Production*:")
+	printD(production)
 	local str = ""
 	if DataPresent(consumption) or DataPresent(production) then
 		str = str .. "<newline><newline>"
@@ -1692,11 +1701,8 @@ CalculateLayoutMaintenance = function()
 			maintenance[type] = maintenance[type] + amount
 		end
 	end
-	if DEBUG then
-		printD("Maintenance:")
-		-- Only direct call print() will print formatted table
-		print(maintenance)
-	end
+	printD("Maintenance:")
+	printD(maintenance)
 	if not DataPresent(maintenance) then
 		return ""
 	else
@@ -1729,11 +1735,8 @@ BuildLayoutLua = function()
 	-- Reverse order is important, BuildLayoutBodyLua() prepares data for Calculate*() functions!
 	local tail = BuildLayoutTailLua()
 	local body = BuildLayoutBodyLua()
-	if DEBUG then
-		printD("LineDistance:")
-		-- Only direct call print() will print formatted table
-		print(gridLineDistance)
-	end
+	printD("LineDistance:")
+	printD(gridLineDistance)
 	local layoutDescrSuffix = ""
 	local cost        = CalculateLayoutCost()
 	local consumption = CalculateLayoutConsumptionProduction()
