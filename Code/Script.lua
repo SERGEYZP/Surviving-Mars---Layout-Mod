@@ -125,8 +125,8 @@ local SetAllFileNames
 local SetBuildCategory
 local SetHubOnLineEnding
 local TableEmpty
-local TableToStringI
-local TableToStringK
+local ToStringTblI
+local ToStringTblK
 local TerrainTextureChange
 local TrimSpace
 local UpdateLayoutsLua
@@ -149,7 +149,7 @@ local layoutIdPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 -- Print to "Layout Mod" log file
 printL = function(data)
 	if type(data) == "table" then
-		data = TableToStringK(data)
+		data = ToStringTblK(data)
 	end
 	data = data:gsub("\n", "\n\t")
 	print("[LCM] " .. data)
@@ -495,7 +495,7 @@ local layoutSettings = {
 	radius = default_radius,
 }
 
-TableToStringI = function(tbl)
+ToStringTblI = function(tbl)
 	local str = ""
 	for i, v in ipairs(tbl) do
 		str = str .. "\t\t"
@@ -508,7 +508,7 @@ TableToStringI = function(tbl)
 	return str
 end
 
-TableToStringK = function(tbl)
+ToStringTblK = function(tbl)
 	local tkeys = {}
 	-- populate the table that holds the keys
 	for k in pairs(tbl) do table.insert(tkeys, k) end
@@ -2024,7 +2024,7 @@ I WANT SHARE LAYOUT:
 	Share layout file in "]] .. CurrentModPath .. "Code/Layout" .. [[" folder.
 	Share icon file in "]] .. CurrentModPath .. "UI/Layout" .. [[" folder.
 DEBUG:
-	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. TableToStringI(origMenuId)
+	"build_category" (allowed value is number from 1 to ]] .. #origMenuId .. [[):]] .. '\n' .. ToStringTblI(origMenuId)
 
 
 
