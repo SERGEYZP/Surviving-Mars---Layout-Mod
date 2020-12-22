@@ -199,32 +199,6 @@ MsgPopupBE = function()
 	MsgPopup("AsyncIO functions are in blacklist, read info: [" .. ShortcutShowInfo .. "]")
 end
 
--- ### Changed:
--- - Debug>Reload LUA (changed how it reloads, so now it works without messing up ECM).
--- Wait for new release with latest commits.
--- TODO ChoGGi will add this function to Expanded Cheat Menu, stay tuned
--- ECM/Lib must be enabled before all others mod
-ChoGGi_ReloadLua = function()
-    if not ModsLoaded then
-        return
-    end
-    -- get list of enabled mods
-    local enabled = table.icopy(ModsLoaded)
-    -- turn off all mods
-    AllModsOff()
-    -- re-enable ecm/lib
-    TurnModOn(ChoGGi.id)     -- Expanded Cheat Menu
-    TurnModOn(ChoGGi.id_lib) -- Library
-    -- reload lua code
-    ModsReloadItems()
-    -- enable disabled mods
-    for i = 1, #enabled do
-        TurnModOn(enabled[i].id)
-    end
-    -- reload lua code
-    ModsReloadItems()
-end
-
 -- Remove all layouts from game
 ClearBuildingTemplates = function()
 	local bt = BuildingTemplates
@@ -247,11 +221,11 @@ LayoutReloadLua = function()
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
 	-- Run in real time thread to show MsgPopup() properly!
-	-- Else it will be showed after ChoGGi_ReloadLua() finished. No sense.
+	-- Else it will be showed after ChoGGi.ComFuncs.ReloadLua() finished. No sense.
 	CreateRealTimeThread(function()
 		MsgPopup("BEGIN RELOAD LUA")
 		Sleep(1000)
-		ChoGGi_ReloadLua()
+		ChoGGi.ComFuncs.ReloadLua()
 		MsgPopup("DONE RELOAD LUA")
 	end)
 end
@@ -535,7 +509,8 @@ ReturnAllNearby = function(radius, sort, class)
 	radius = radius or 50
 
 	-- get objects inherited from "class" within radius
-	local list = MapGet(GetTerrainCursor(), radius * 100, class)
+	-- "guim" = 100 - global var ("meters-to-distance" coefficient)
+	local list = MapGet(GetTerrainCursor(), radius * guim, class)
 
 	-- sort list custom
 	if sort then
