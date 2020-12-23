@@ -504,13 +504,14 @@ end
 ReturnAllNearby = function(radius, sort, class)
 	-- local is faster then global
 	local table_sort = table.sort
+	local pt = GetTerrainCursor()
 
 	-- "radius" = meters * 100
 	radius = radius or 50
 
 	-- get objects inherited from "class" within radius
 	-- "guim" = 100 - global var ("meters-to-distance" coefficient)
-	local list = MapGet(GetTerrainCursor(), radius * guim, class)
+	local list = MapGet(pt, radius * guim, class)
 
 	-- sort list custom
 	if sort then
