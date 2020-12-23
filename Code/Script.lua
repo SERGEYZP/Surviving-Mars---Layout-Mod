@@ -115,6 +115,7 @@ local printD
 local printDMsgOrErr
 local printL
 local RemoveNoConn
+local RemoveInDomeBuildings
 local RemoveUselessBuildings
 local ReturnAllNearby
 local SaveLayoutLua
@@ -691,6 +692,31 @@ IsIdUnique = function(layoutFileExist)
 	return true
 end
 
+RemoveInDomeBuildings = function(buildings, domes)
+	local table_insert = table.insert
+	local table_remove = table.remove
+	if not TableEmpty(domes) then
+		local buildings_indoor = {}
+		-- Get all indoor buildings in one table
+		for i, dome in ipairs(domes) do
+			-- LuaMarsLabels.md.html - each dome has own labels: "Buildings" - all buildings in the "Dome"
+			local container = dome.labels.Buildings
+			for i = 1, #(container or "") do
+				table_insert(buildings_indoor, container[i])
+			end
+		end
+		-- Remove building if it was found in "Domes"
+		for i = #buildings, 1, -1 do
+			for _, indoorBuilding in ipairs(buildings_indoor) do
+				if indoorBuilding == buildings[i] then
+					table_remove(buildings, i)
+					break
+				end
+			end
+		end
+	end
+end
+
 RemoveUselessBuildings = function(worldObjs, captureIndoor)
 	-- Local is faster
 	local table_remove = table.remove
@@ -712,18 +738,36 @@ RemoveUselessBuildings = function(worldObjs, captureIndoor)
 end
 
 CaptureObjects = function(captureIndoor)
-	local supplyGrid
-	buildings = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")
-	RemoveUselessBuildings(buildings, captureIndoor)
+	local table_insert = table.insert
+	local domes = ReturnAllNearby(layoutSettings.radius, nil, "Dome") -- sorted by distance
 	if captureIndoor then
-		-- No cables and tubes inside dome
+		-- Capture buildings inside nearest "Dome"
+		buildings = {}
+		if not TableEmpty(domes) then
+			if DEBUG_EXAMINE then
+				OpenExamine(domes)
+			end
+			-- Get first element from "domes" table == nearest "Dome"
+			-- LuaMarsLabels.md.html - each dome has own labels: "Buildings" - all buildings in the "Dome"
+			local container = domes[1].labels.Buildings
+			-- Copy table by element because we will modify our "buildings" table
+			for i = 1, #(container or "") do
+				table_insert(buildings, container[i])
+			end
+		end
+		-- No cables and tubes inside "Dome"
 		cables = {}
 		tubes = {}
 	else
-		supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement")
+		-- Capture buildings outside "Dome"
+		local supplyGrid
+		buildings  = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")       -- sorted by "template_name"
+		supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement") -- sorted by distance
 		cables = GetObjsByEntity(supplyGrid, "Cable")
 		tubes  = GetObjsByEntity(supplyGrid, "Tube")
+		RemoveInDomeBuildings(buildings, domes)
 	end
+	RemoveUselessBuildings(buildings, captureIndoor)
 
 	local numCapturedObjects = #buildings + #cables + #tubes
 	printD("Captured objects: " .. numCapturedObjects .. " = #buildings=" .. #buildings .. " + #cables=" .. #cables .. " + #tubes=" .. #tubes)
@@ -1978,7 +2022,7 @@ SET PARAMS:
 	Press []] .. ShortcutSetParams .. [[] again to close all dialog windows.
 CAPTURE:
 	Press []] .. ShortcutCaptureOutdoor .. [[] to capture outdoor buildings (be aware to capture buildings required be near dome or resource deposit).
-	Press []] .. ShortcutCaptureIndoor .. [[] to capture indoor buildings (skip "dome_forbidden").
+	Press []] .. ShortcutCaptureIndoor .. [[] to capture indoor buildings in nearest dome.
 APPLY:
 	To take changes in effect restart game (reliable). Press [Ctrl-Alt-R] then [Enter].
 	Or reload lua (not responsible for potential mess if you want continue play). Press []] .. ShortcutReloadLua .. [[].
