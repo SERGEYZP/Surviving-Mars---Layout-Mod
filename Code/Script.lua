@@ -85,6 +85,7 @@ local GetIdFromFileName
 local GetIdList
 local GetLayoutListFiles
 local GetObjsByEntity
+local GetOppositeDirection
 local GetResourcesTable
 local GetSupplyTable
 local Hex
@@ -1292,6 +1293,14 @@ AxialDirection = function(hexObj)
 	return direction, noMoreConnection
 end
 
+GetOppositeDirection = function(direction)
+	-- Hex grid have 6 directions, so plus 3 gives opposite direction
+	-- Limit result to 6 by "%" operator (module)
+	-- Subtract 1 from direction to make it zero-based, because "%" operator is zero-based
+	-- Add 1 to result to make numeration starts from one.
+	return ((direction - 1) + 3) % 6 + 1
+end
+
 BuildOrphans = function(hexObjs, type, strTbl)
 	local table_remove = table.remove
 	local orphanNum = 0
@@ -1334,13 +1343,8 @@ FindEndObj = function(hexObjs, hexObjBegin, direction)
 			return hexObjPrev
 		end
 		if hexObjNext.hub then
-			-- Hex grid have 6 directions, so plus 3 gives opposite direction
-			-- Limit result to 6 by "%" operator (module)
-			-- Subtract 1 from direction to make it zero-based, because "%" operator is zero-based
-			-- Add 1 to result to make numeration starts from one.
-			local oppositeDir = ((direction - 1) + 3) % 6 + 1
 			-- Clear direction, from which we came
-			ClearBitConn(hexObjNext, oppositeDir)
+			ClearBitConn(hexObjNext, GetOppositeDirection(direction))
 			return hexObjNext
 		else
 			-- "Segments" between "Hubs" have only two directions: one from which
