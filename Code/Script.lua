@@ -452,8 +452,6 @@ local GUIDE
 -- Bad coding, global vars :(
 -- World objects
 local buildings, cables, tubes
--- Save grid lines' distance to calculate build cost
-local gridLineDistance
 
 -- File names and paths
 local layoutFilePath, layoutFileNameNoPath, layoutFileName, metadataFileName, layoutsFileName, menuIconFileName, layoutIconFileName
@@ -1197,7 +1195,6 @@ HexObjLineAsStr = function(hexBegin, hexEnd, type, saveOrphan)
 			"pos", point(]] .. hexBegin.q .. [[, ]] .. hexBegin.r .. [[),
 			"cur_pos1", point(]] .. hexEnd.q .. [[, ]] .. hexEnd.r .. [[),
 		}),]] .. "\n\n"
-		gridLineDistance[#gridLineDistance + 1] = HexDistance(hexBegin, hexEnd)
 		printD(type .. ": Line=" .. hexBegin.q .. "," .. hexBegin.r .. "|" .. hexEnd.q .. "," .. hexEnd.r .. " Distance=" .. HexDistance(hexBegin, hexEnd))
 	end
 	return str
@@ -1238,6 +1235,7 @@ HexObjs = function(worldObjs, baseHex)
 			entity = entity,
 			hex = hex,
 			hub = hub,
+			grid = 0, -- grid to which belongs this object
 		}
 	end
 	return hexObjs
@@ -1608,22 +1606,101 @@ CalculateBuildingsCost = function(cost)
 	end
 end
 
--- TODO Неправильно считает трубы и кабеля
 CalculateGridCost = function(cost)
-	-- Grid cost: 1 metal for each 5 hexes-long section
-	for i, dist in ipairs(gridLineDistance) do
+	local function CalculateOrphanCost(hexObjs)
+		local table_remove = table.remove
 		local metals = 0
-		if dist == 0 then
-			-- Orphan distance == 0
-			metals = 1
-		else
+		for i = #hexObjs, 1, -1 do
+			if hexObjs[i].conn == 0 then
+				metals = metals + 1
+				table_remove(hexObjs, i)
+			end
+		end
+		return metals
+	end
+
+	local function MarkUniqueGrid(hexObjs)
+		local function FindObjNoGrid(hexObjs)
+			for i, hexObj in ipairs(hexObjs) do
+				if hexObj.grid == 0 then
+					return hexObj
+				end
+			end
+			return nil
+		end
+
+		local function MarkNeighbors(hexObjs, hexObj)
+			local noConn = false
+			-- Last obj in cable/tube line does non have connections and not marked neighbors
+			if hexObj.conn == 0 then
+				noConn = true
+			end
+			while (not noConn) do
+				local direction
+				direction, noConn = AxialDirection(hexObj)
+				local hexNeighbor = HexNeighbor(hexObj.hex, direction)
+				local hexObjNeighbor = FindObjByHex(hexObjs, hexNeighbor)
+				-- Tube line can end not on "TubeHub" (example: "Oxygen Tank")
+				if hexObjNeighbor then
+					if hexObjNeighbor.grid > 0 and hexObjNeighbor.grid ~= hexObj.grid then
+						printD("MarkNeighbors() - logic error. Get neighbor object, that belongs to different grid.")
+					elseif hexObjNeighbor.grid == hexObj.grid then
+						-- Do nothing, neighbor was marked from another recursion call
+					else
+						-- Clear direction, from which we came
+						ClearBitConn(hexObjNeighbor, GetOppositeDirection(direction))
+						hexObjNeighbor.grid = hexObj.grid
+						MarkNeighbors(hexObjs, hexObjNeighbor)
+					end
+				end
+			end
+		end
+
+		local gridCount = 0
+		while(true) do
+			gridCount = gridCount + 1
+			local hexObj = FindObjNoGrid(hexObjs)
+			if not hexObj then
+				break
+			end
+			hexObj.grid = gridCount
+			MarkNeighbors(hexObjs, hexObj)
+		end
+		return gridCount
+	end
+
+	local function GridLen(hexObjs)
+		local gridLen = {}
+		for i, hexObj in ipairs(hexObjs) do
+			gridLen[hexObj.grid] = (gridLen[hexObj.grid] or 0) + 1
+		end
+		return gridLen
+	end
+
+	local function CalculateUniqueGridCost(gridLen)
+		-- Grid cost: 1 metal for each 5 hexes-long section
+		local metals = 0
+		for i, len in ipairs(gridLen) do
+			printD("Hex sections in Grid[" .. i .. "]=" .. len)
 			-- "//" is floor (integer) division
-			metals = metals + dist // 5
-			if dist % 5 > 0 then
+			metals = metals + len // 5
+			if len % 5 > 0 then
 				-- Less than 5 hexes-long section cost 1 metal too
 				metals = metals + 1
 			end
 		end
+		return metals
+	end
+
+	-- "w" = World, "h" = Hex
+	local baseHex = GetBaseObjectPosition()
+	for i, wGrid in ipairs({cables, tubes}) do
+		local metals = 0
+		local hGrid = HexObjs(wGrid, baseHex)
+		metals = metals + CalculateOrphanCost(hGrid) -- removes orphans from "hGrid"
+		local gridNum = MarkUniqueGrid(hGrid)
+		local gridLen = GridLen(hGrid)
+		metals = metals + CalculateUniqueGridCost(gridLen)
 		cost.metals = cost.metals + metals * const.ResourceScale
 	end
 end
@@ -1653,13 +1730,13 @@ end
 CalculateLayoutCost = function()
 	local cost = GetResourcesTable()
 	CalculateBuildingsCost(cost)
-	-- CalculateGridCost(cost)
-	printD("Cost (w/o grid):")
+	CalculateGridCost(cost)
+	printD("Cost:")
 	printD(cost)
 	if not DataPresent(cost) then
 		return ""
 	else
-		return "<newline><newline>Cost (w/o grid): " .. FormatResourceStr(cost)
+		return "<newline><newline>Cost: " .. FormatResourceStr(cost)
 	end
 end
 
@@ -1736,8 +1813,6 @@ CalculateLayoutMaintenance = function()
 end
 
 BuildLayoutBodyLua = function()
-	-- Reset global var for new usage
-	gridLineDistance = {}
 	local str = ""
 	-- Base point (zero point)
 	local baseHex = GetBaseObjectPosition()
@@ -1760,8 +1835,6 @@ BuildLayoutLua = function()
 	-- Reverse order is important, BuildLayoutBodyLua() prepares data for Calculate*() functions!
 	local tail = BuildLayoutTailLua()
 	local body = BuildLayoutBodyLua()
-	printD("LineDistance:")
-	printD(gridLineDistance)
 	local layoutDescrSuffix = ""
 	local cost        = CalculateLayoutCost()
 	local consumption = CalculateLayoutConsumptionProduction()
