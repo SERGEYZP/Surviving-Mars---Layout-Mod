@@ -761,12 +761,11 @@ CaptureObjects = function(captureIndoor)
 		tubes = {}
 	else
 		-- Capture buildings outside "Dome"
-		local supplyGrid
-		buildings  = ReturnAllNearby(layoutSettings.radius, "template_name", "Building")       -- sorted by "template_name"
-		supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement") -- sorted by distance
+		buildings = ReturnAllNearby(layoutSettings.radius, "template_name", "Building") -- sorted by "template_name"
+		RemoveInDomeBuildings(buildings, domes)
+		local supplyGrid = ReturnAllNearby(layoutSettings.radius, nil, "BreakableSupplyGridElement") -- sorted by distance
 		cables = GetObjsByEntity(supplyGrid, "Cable")
 		tubes  = GetObjsByEntity(supplyGrid, "Tube")
-		RemoveInDomeBuildings(buildings, domes)
 	end
 	RemoveUselessBuildings(buildings, captureIndoor)
 
