@@ -1195,7 +1195,9 @@ HexObjLineAsStr = function(hexBegin, hexEnd, type, saveOrphan)
 			"pos", point(]] .. hexBegin.q .. [[, ]] .. hexBegin.r .. [[),
 			"cur_pos1", point(]] .. hexEnd.q .. [[, ]] .. hexEnd.r .. [[),
 		}),]] .. "\n\n"
-		printD(type .. ": Line=" .. hexBegin.q .. "," .. hexBegin.r .. "|" .. hexEnd.q .. "," .. hexEnd.r .. " Distance=" .. HexDistance(hexBegin, hexEnd))
+		local distance = HexDistance(hexBegin, hexEnd)
+		printD(type .. ": Line=" .. hexBegin.q .. ":" .. hexBegin.r .. "|" .. hexEnd.q .. ":" .. hexEnd.r
+			.. " Dist=" .. distance .. " Len=" .. (distance + 1))
 	end
 	return str
 end
