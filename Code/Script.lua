@@ -193,7 +193,7 @@ MsgPopup = function(str)
 		-- callback = function,
 		-- max_width = integer, -- (default 1000)
 	-- }
-	printD("MP: " .. str)
+	printD("[MP] " .. str)
 	ChoGGi.ComFuncs.MsgPopup(str, modName, {size = true})
 end
 
