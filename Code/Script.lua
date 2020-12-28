@@ -1,4 +1,4 @@
--- Skip "Tunnels", it make no sense to capture it.
+-- Skip "Pod", "Rocket" and "Tunnel", it make no sense to capture it.
 -- LayoutConstruction.lua - did not support "passage_grid", "TubeSwitch" and "CableSwitch"!!!
 	-- local supported_grid_contstruction_modes = {
 	--		electricity_grid = true,
@@ -726,7 +726,14 @@ RemoveUselessBuildings = function(worldObjs, captureIndoor)
 		local template_name  = worldObjs[i].template_name
 		-- "Passages" not supported by in-game "LayoutConstruction", remove them
 		-- "Passages" between "Domes" are "Building", but they don't have "template_name"
-		if template_name == "" or template_name == "Tunnel"
+		if template_name == ""
+			-- Remove "Pod" and "Rocket"
+			or template_name == "PodLandingSite"
+			or template_name == "RocketLandingSite"
+			or template_name == "SupplyPod"
+			or template_name == "SupplyRocket"
+			-- Remove "Tunnel"
+			or template_name == "Tunnel"
 			-- Remove "dome_forbidden", when we capture indoor buildings
 			or (captureIndoor and dome_forbidden)
 			-- Remove "dome_required" buildings if we capture outdoor buildings, game will not allow build such layout
@@ -2080,7 +2087,7 @@ INSTALL:
 	[Optional] ChoGGi's "Fix Layout Construction Tech Lock" mod if you want build buildings, that is locked by tech.
 BUILD:
 	Place your buildings (recommend on empty map OR tune capture "radius" to capture only needed buildings).
-	"Passage", "Pipe Valve", "Power Switch" not supported. "Tunnel" supported, but mod skips them.
+	"Passage", "Pipe Valve", "Power Switch" not supported. "Pod", "Rocket" and "Tunnel" supported, but mod skips them.
 	Mod will skip "dome_required" buildings if you capture all buildings, game will not allow to build such layout.
 	Press [Alt-B] to complete constructions.
 SET PARAMS:
