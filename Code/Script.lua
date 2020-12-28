@@ -1459,15 +1459,11 @@ BuildGrid = function(worldObjs, baseHex, type)
 		local hexObjs = HexObjs(worldObjs, baseHex)
 		-- Set additional orphans
 		SetAdditionalOrphans(hexObjs)
-		
 		local orphanNum = BuildOrphans(hexObjs, type, strTbl)
-		local lineNum = BuildLines(hexObjs, type, strTbl)
-		
 		-- Tube line without hubs at both ends (example straight line between two domes)
-		if IsTubes(type) then
-			SetHubOnLineEnding(hexObjs)
-			lineNum = lineNum + BuildLines(hexObjs, type, strTbl)
-		end
+		-- OR if part of straight line of grid falls within the capture radius it will be captured without any hubs
+		SetHubOnLineEnding(hexObjs)
+		local lineNum = BuildLines(hexObjs, type, strTbl)
 
 		printD(type .. ": GridOrphan = " .. orphanNum .. " GridLine = " .. lineNum)
 		if not TableEmpty(hexObjs) then
