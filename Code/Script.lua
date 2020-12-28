@@ -1484,6 +1484,8 @@ GetBaseObjectPosition = function()
 	end
 
 	local q, r = WorldToHex(baseObj)
+
+	printD("Base Object: " .. baseObj:GetEntity() .. " q:r=" .. q .. ":" .. r)
 	if DEBUG_EXAMINE then
 		OpenExamine(baseObj)
 	end
