@@ -150,6 +150,12 @@ local layoutIdPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 -- local DEBUG_EXAMINE = true -- Examine lists of objects and "base" object
 -- local DEBUG_LUA = true -- Do not overwrite existing lua files
 
+-- This extension will be added to all lua files if DEBUG_LUA enabled
+local dbgExt = ""
+if DEBUG_LUA then
+	dbgExt = ".txt"
+end
+
 -- Print to "Layout Mod" log file
 printL = function(data)
 	if type(data) == "table" then
@@ -634,7 +640,6 @@ SetAllFileNames = function()
 	
 	-- Do not overwrite existing lua files
 	if DEBUG_LUA then
-		local dbgExt = ".txt"
 		layoutsFileName = layoutsFileName .. dbgExt
 		layoutFileName = layoutFileName .. dbgExt
 		layoutFileNameNoPath = layoutFileNameNoPath .. dbgExt
@@ -1871,7 +1876,7 @@ end
 
 -- Return list of files in "Code/Layout" folder
 GetLayoutListFiles = function()
-	local err, layoutListFiles = AsyncListFiles(CurrentModPath .. "Code/Layout", "*.lua", "relative, sorted")
+	local err, layoutListFiles = AsyncListFiles(CurrentModPath .. "Code/Layout", "*.lua" .. dbgExt, "relative, sorted")
 	printDMsgOrErr(
 		err,
 		nil,
