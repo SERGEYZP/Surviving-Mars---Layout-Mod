@@ -229,7 +229,14 @@ LayoutReloadLua = function()
 	CreateRealTimeThread(function()
 		MsgPopup("BEGIN RELOAD LUA")
 		Sleep(1000)
-		ChoGGi.ComFuncs.ReloadLua()
+		-- Variant 1: Reload all mods + all mods items.
+			-- ChoGGi.ComFuncs.ReloadLua() -- Reload mods in "proper" sequence. Maybe most reliable variant.
+		-- Variant 2: Reload only my mod + all mods items.
+			-- table.remove_entry(AccountStorage.LoadMods, modId)
+			-- TurnModOn(modId)
+			-- ModsReloadItems()
+		-- Variant 3: Reload all mods items.
+			ModsReloadItems()
 		MsgPopup("DONE RELOAD LUA")
 	end)
 end
