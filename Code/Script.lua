@@ -2159,3 +2159,133 @@ DEBUG:
 
 -- function CloseAllMessagesAndQuestions()
 -- function AreMessageBoxesOpen()
+
+
+
+
+-- DELETE THIS IF DEVELOPERS FIX THIS BUGS
+-- Fix bugs in source lua: .\Lua\LayoutConstruction.lua
+-- Change "electricity_support_grid" to "electricity_grid"
+function GetLayoutConstructionBuildingCost(template_obj)
+	if IsGameRuleActive("FreeConstruction") then
+		return T(10540, "Cost: Nothing (Free Construction rule)"),false
+	end
+		
+	local costs = {}
+	local layout_preset = Presets.LayoutConstruction.Default[template_obj.LayoutList]  or empty_table
+	assert(#layout_preset > 0)
+	-- addd buildings cost 	
+	for _, entry in ipairs(layout_preset) do
+		local entity = entry.entity ~= "" and entry.entity
+		if entry.template~="life_support_grid" and entry.template~="electricity_grid" then
+			local template_class = ClassTemplates.Building[entry.template]
+			local mod_o = GetModifierObject(template_class.template_name)
+			for _, resource in ipairs(ConstructionResourceList) do
+				local amount = UICity:GetConstructionCost(template_class, resource, mod_o)
+				if amount > 0 then
+					costs[resource] = (costs[resource] or 0) + amount
+				end
+			end	
+		end	
+	end
+
+	local items = {}
+	for resource, amount in pairs(costs) do
+		items[#items+1]  = T{901, "<resource_name><right><resource(number,resource)>", resource_name = Resources[resource].display_name, number = amount, resource = resource }
+	end
+	if #items > 0 then
+		return table.concat(items, "<newline><left>"), costs
+	else
+		return T(902, "Doesn't require construction resources"), costs
+	end
+end
+
+function GetLayoutConstructionControllerBMDescription(template, texts, dont_modify)
+	local available_prefabs = UICity:GetPrefabs("SelfSufficientDome")
+	if available_prefabs>0 then
+		texts[#texts+1] = T{3969, "Available prefabs: <number>", number = available_prefabs}
+	else
+		local text, costs = GetLayoutConstructionBuildingCost(template)
+		if costs and next(costs) then
+			local cost1 = {}
+			for resource, cost in pairs(costs) do
+				cost1[#cost1+1] =  FormatResource(empty_table, cost, resource)
+			end
+			if next(cost1)then
+				texts[#texts+1] =  T(263, "Cost: ")..table.concat(cost1," ")
+			end
+		else
+			texts[#texts+1] = text
+		end
+	end
+	local layout_preset = Presets.LayoutConstruction.Default[template.LayoutList]  or empty_table
+	assert(#layout_preset > 0)
+	
+	local consumption = {}
+	local maintenance = {}
+	local consumption_res = {}
+	local entry_templates = {}
+	
+	for _, entry in ipairs(layout_preset) do
+		local entity = entry.entity ~= "" and entry.entity
+		if entry.template~="life_support_grid" and entry.template~="electricity_grid" then
+			local template_class = ClassTemplates.Building[entry.template]
+			 entry_templates[#entry_templates +1] = template_class
+		end	
+	end		
+	
+	for i = 1, #maintenance_props do
+		local maintenance_prop = maintenance_props[i][1]
+		local consumption_resource =  maintenance_props[i][2]
+		
+		local val = 0
+		for idx, template_class in ipairs(entry_templates) do
+			local properties = template_class.properties
+			local modifier_obj = GetModifierObject(template_class.template_name)
+			local prop = table.find_value(properties, "id", maintenance_prop)
+			if prop then
+				if not dont_modify then
+					local disable_prop = table.find_value(properties, "id", "disable_" .. maintenance_prop)
+					val = val + (disable_prop and modifier_obj:ModifyValue(template_class[disable_prop.id], disable_prop.id) >= 1
+									and 0 or modifier_obj:ModifyValue(template_class[prop.id], prop.id))
+				else
+					val = val + template_class[prop.id]
+				end
+			end	
+			-- calc only ones additional consumption_res and maintanence
+			if i==1  then
+				if template_class:DoesHaveConsumption() then
+					consumption_res[template_class.consumption_resource_type] = consumption_res[template_class.consumption_resource_type] + 1000
+				end
+				-- maintanence
+				if template_class:DoesRequireMaintenance() and template_class:DoesMaintenanceRequireResources()
+					and (dont_modify or modifier_obj:ModifyValue(template_class.disable_maintenance, "disable_maintenance") <= 0) then
+					maintenance[template_class.maintenance_resource_type] = (maintenance[template_class.maintenance_resource_type] or 0) + template_class.maintenance_resource_amount
+				end
+			end
+		end
+		if val ~= 0 then
+			consumption[#consumption + 1] = FormatResource(empty_table, val, consumption_resource)
+		end
+	end
+
+	if next(consumption) then
+		local c_text = ""
+		for res, val in pairs(consumption_res) do
+			c_text = c_text .. FormatResource(empty_table, val, res).." "
+		end	
+		if c_text~="" then
+			consumption[#consumption + 1] = c_text
+		end	
+		texts[#texts+1] = T(3959, "Consumption: ") .. table.concat(consumption, " ")
+	end
+	if next(maintenance) then
+		local m_text = ""
+		for res, val in pairs(maintenance) do
+			m_text = m_text .. FormatResource(empty_table, val, res).." "
+		end	
+		texts[#texts+1] = T(12398, "Maintenance: ") .. m_text
+	end
+
+	return table.concat(texts, "\n")
+end
