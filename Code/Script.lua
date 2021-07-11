@@ -221,6 +221,7 @@ ClearBuildingTemplates = function()
 	for key, val in pairs(bt) do
 		if string_find(key, layoutIdPrefix) == 1 then
 			bt[key] = nil
+			printD("BuildingTemplates[" .. key .. "] = nil")
 		end
 	end
 end
@@ -228,6 +229,7 @@ end
 -- ReloadLua() is in-game function name, don't use it!!!
 LayoutReloadLua = function()
 	-- cls()
+	printD(GetDate())
 	-- Remove all layouts from game before reload lua, so we can manually edit layout in text editor and see result after reload
 	ClearBuildingTemplates()
 	-- Run in real time thread to show MsgPopup() properly!
