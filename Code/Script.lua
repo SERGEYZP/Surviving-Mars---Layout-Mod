@@ -146,9 +146,9 @@ local layoutIdPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 ---- DEBUG ----
 
 -- Open in Notepad++, and hit [Ctrl-Q] to toggle comment
--- local DEBUG = true
--- local DEBUG_EXAMINE = true
--- local DEBUG_LUA = true
+-- local DEBUG = true -- Print some info to console
+-- local DEBUG_EXAMINE = true -- Examine lists of objects and "base" object
+-- local DEBUG_LUA = true -- Do not overwrite existing lua files
 
 -- Print to "Layout Mod" log file
 printL = function(data)
