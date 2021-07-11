@@ -137,8 +137,10 @@ local WriteToFiles
 
 
 
--- Change "layoutIdPrefix" if you change mod name, set "title" in "metadala.lua", change functions printD(), CreateShortcuts()
+-- If you change mod name: change "layoutIdPrefix", "title" in "metadata.lua", functions printD() and CreateShortcuts()
 local modName = "Layout Capture Mod"
+-- If you change mod id: change "id" in "metadata.lua"
+local modId = "Kyklish_Layout_Capture_Mod"
 local layoutIdPrefix = "_LCM_" -- (L)ayout (C)apture (M)od
 
 ---- DEBUG ----
@@ -1893,10 +1895,12 @@ end
 			-- "version_minor", 6,
 		-- }),
 	-- },
+	-- -- If you change mod name: change "modName" in .\Code\Script.lua
 	-- 'title', "Layout Capture Mod",
 	-- 'description', "Capture and save building's layout.",
 	-- 'image', "Preview.png",
 	-- 'last_changes', "Initial release.",
+	-- -- If you change mod id: change "modId" in .\Code\Script.lua
 	-- 'id', "Kyklish_Layout_Capture_Mod",
 	-- 'steam_id', "9876543210",
 	-- 'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",

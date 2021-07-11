@@ -13,10 +13,12 @@ return PlaceObj('ModDef', {
 			"version_minor", 7,
 		}),
 	},
+	-- If you change mod name: change "modName" in .\Code\Script.lua
 	'title', "Layout Capture Mod",
 	'description', "Capture and save building's layout.",
 	'image', "Preview.png",
 	'last_changes', "Initial release.",
+	-- If you change mod id: change "modId" in .\Code\Script.lua
 	'id', "Kyklish_Layout_Capture_Mod",
 	'steam_id', "9876543210",
 	'pops_desktop_uuid', "2985b508-0ba0-4f20-8ff3-8bf242be35e3",
